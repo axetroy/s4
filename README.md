@@ -2,7 +2,6 @@
 
 defined the jobs for remote and do it at local.
 
-
 ### Usage
 
 create a file name `.s4`
@@ -12,7 +11,7 @@ HOST 192.168.0.1 # your remote server IP
 
 PORT 2222 # SSH port
 
-USERNAME root # SSH port
+USERNAME root # username for the host
 
 CWD /root # set current work dir
 
@@ -24,6 +23,17 @@ RUN cat ./test/README.md # run the command
 ```bash
 $ s4 --help
 ```
+
+### Documentation
+
+| Keyword  | Description                        |
+| -------- | ---------------------------------- |
+| HOST     | remote server                      |
+| PORT     | remote ssh server port             |
+| USERNAME | remote ssh server's username       |
+| CWD      | current work dir for remote server |
+| COPY     | copy local files to remote server  |
+| RUN      | run command in remote command      |
 
 ### License
 
