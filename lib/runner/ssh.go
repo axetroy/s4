@@ -159,7 +159,7 @@ func (c *Client) Run(command string) error {
 	return nil
 }
 
-func (c *Client) Download(remoteFilePath string, localDir string) error {
+func (c *Client) downloadFile(remoteFilePath string, localDir string) error {
 	remoteFile, err := c.sftpClient.Open(remoteFilePath)
 
 	if err != nil {
@@ -170,6 +170,11 @@ func (c *Client) Download(remoteFilePath string, localDir string) error {
 
 	var localFileName = path.Base(remoteFilePath)
 
+	// ensure local dir exist
+	if err := fs.EnsureDir(localDir); err != nil {
+		return err
+	}
+
 	localFile, err := os.Create(path.Join(localDir, localFileName))
 
 	if err != nil {
@@ -178,16 +183,52 @@ func (c *Client) Download(remoteFilePath string, localDir string) error {
 
 	defer localFile.Close()
 
-	// ensure local dir exist
-	if err := fs.EnsureDir(localDir); err != nil {
-		return err
-	}
-
 	if _, err = remoteFile.WriteTo(localFile); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (c *Client) downloadDir(remoteFilePath string, localDir string) error {
+	files, err := c.sftpClient.ReadDir(remoteFilePath)
+	if err != nil {
+		return err
+	}
+
+	localDir = path.Join(localDir, path.Base(remoteFilePath))
+
+	for _, file := range files {
+		fileName := file.Name()
+		absFilePath := path.Join(remoteFilePath, fileName)
+
+		if file.IsDir() {
+			if err := c.downloadDir(absFilePath, path.Join(localDir, fileName)); err != nil {
+				return nil
+			}
+		} else {
+			if err := c.downloadFile(absFilePath, localDir); err != nil {
+				return nil
+			}
+		}
+	}
+
+	return nil
+}
+
+func (c *Client) Download(remoteFilePath string, localDir string) error {
+	remoteFileStat, err := c.sftpClient.Stat(remoteFilePath)
+
+	if err != nil {
+		return err
+	}
+
+	// if it is a directory
+	if remoteFileStat.IsDir() {
+		return c.downloadDir(remoteFilePath, localDir)
+	} else {
+		return c.downloadFile(remoteFilePath, localDir)
+	}
 }
 
 func (c *Client) Copy(localFilePath string, remoteDir string) error {
@@ -215,11 +256,18 @@ func (c *Client) Copy(localFilePath string, remoteDir string) error {
 
 	buf := make([]byte, 1024)
 	for {
-		n, _ := localFile.Read(buf)
+		n, err := localFile.Read(buf)
+
+		if err != nil {
+			return err
+		}
+
 		if n == 0 {
 			break
 		}
-		dstFile.Write(buf[0:n])
+		if _, err := dstFile.Write(buf[0:n]); err != nil {
+			return err
+		}
 	}
 
 	return nil
