@@ -17,23 +17,57 @@ type Action struct {
 type Config struct {
 	Host     string
 	Port     int
+	CWD      string
 	Username string
 	Password string
-	CWD      string
 	Actions  []Action
 }
 
-func Parse(configFile string) (c Config, err error) {
+func RemoveComment(value string) string {
+	hashIndex := strings.Index(value, "#")
+
+	if hashIndex < 0 {
+		return value
+	}
+
+	result := strings.Join(strings.Split(value, "")[:hashIndex], "")
+
+	return strings.Trim(result, " ")
+}
+
+func ParseFile(s4File string) (*Config, error) {
 	var content []byte
-	content, err = fs.ReadFile(configFile)
+	content, err := fs.ReadFile(s4File)
 
+	if err != nil {
+		return nil, err
+	}
+
+	c, err := Parse(content)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if err := Check(c); err != nil {
+		return nil, err
+	}
+
+	return &c, nil
+}
+
+func Parse(content []byte) (c Config, err error) {
 	raw := string(content[:])
-
 	lines := strings.Split(raw, "\n")
 
 	for _, line := range lines {
 		s := strings.Trim(line, "")
 		if s == "" {
+			continue
+		}
+
+		// comment line
+		if strings.Index(s, "#") == 0 {
 			continue
 		}
 
@@ -44,10 +78,10 @@ func Parse(configFile string) (c Config, err error) {
 
 		switch keyword {
 		case "HOST":
-			c.Host = value
+			c.Host = RemoveComment(value)
 			break
 		case "PORT":
-			if port, e := strconv.Atoi(value); e != nil {
+			if port, e := strconv.Atoi(RemoveComment(value)); e != nil {
 				err = e
 				return
 			} else {
@@ -55,15 +89,17 @@ func Parse(configFile string) (c Config, err error) {
 			}
 			break
 		case "USERNAME":
-			c.Username = value
+			c.Username = RemoveComment(value)
 			break
 		case "CWD":
-			c.CWD = value
-			break
+			if c.CWD == "" {
+				c.CWD = RemoveComment(value)
+			}
+			fallthrough
 		case "COPY":
 			c.Actions = append(c.Actions, Action{
 				Action:    keyword,
-				Arguments: value,
+				Arguments: RemoveComment(value),
 			})
 			break
 		case "RUN":
@@ -79,5 +115,20 @@ func Parse(configFile string) (c Config, err error) {
 
 	}
 
+	// check config is valid
+
 	return
+}
+
+// check config file is valid of not
+func Check(c Config) error {
+	if c.Host == "" {
+		return errors.New(fmt.Sprintf("Invalid 'host' %s", c.Host))
+	}
+
+	if c.Port == 0 {
+		return errors.New(fmt.Sprintf("Invalid 'port' %d", c.Port))
+	}
+
+	return nil
 }

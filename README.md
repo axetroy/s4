@@ -26,14 +26,14 @@ $ s4 --help
 
 ### Documentation
 
-| Keyword  | Description                        |
-| -------- | ---------------------------------- |
-| HOST     | remote server                      |
-| PORT     | remote ssh server port             |
-| USERNAME | remote ssh server's username       |
-| CWD      | current work dir for remote server |
-| COPY     | copy local files to remote server  |
-| RUN      | run command in remote command      |
+| Keyword  | Description                            | Multiple selection |
+| -------- | -------------------------------------- | ------------------ |
+| HOST     | remote ssh server address              | ✖️                 |
+| PORT     | remote ssh server port                 | ✖️                 |
+| USERNAME | remote ssh server username             | ✖️                 |
+| CWD      | set current work dir for remote server | ☑️                 |
+| COPY     | copy local files to remote server      | ☑️                 |
+| RUN      | run command in remote command          | ☑️                 |
 
 ### License
 

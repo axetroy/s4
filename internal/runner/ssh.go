@@ -1,22 +1,26 @@
 package runner
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
+	"github.com/axetroy/sshunter/internal/parser"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 	"io"
 	"net"
 	"os"
 	"path"
+	"strings"
 )
 
 type Client struct {
-	config     Config
+	config     parser.Config
 	sshClient  *ssh.Client
 	sftpClient *sftp.Client
 }
 
-func NewSSH(c Config) *Client {
+func NewSSH(c parser.Config) *Client {
 	return &Client{
 		config:     c,
 		sshClient:  nil,
@@ -71,6 +75,36 @@ func (c *Client) Disconnect() error {
 	}
 
 	return nil
+}
+
+func (c *Client) Pwd() (string, error) {
+	// Create a session. It is one session per command.
+	session, err := c.sshClient.NewSession()
+
+	if err != nil {
+		return "", err
+	}
+
+	defer func() {
+		_ = session.Close()
+	}()
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	session.Stdout = &stdout
+	session.Stderr = &stderr
+
+	if err = session.Run("pwd"); err != nil {
+		msg := stderr.String()
+
+		if len(msg) > 0 {
+			return "", errors.New(msg)
+		}
+
+		return "", err
+	}
+
+	return strings.Trim(strings.Trim(stdout.String(), " "), "\n"), nil
 }
 
 func (c *Client) Run(command string) error {

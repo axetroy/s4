@@ -23,14 +23,14 @@ func NewRunner(configFile string) (*Runner, error) {
 		return nil, errors.New(color.RedString(msg))
 	}
 
-	config, err := parser.Parse(configFile)
+	config, err := parser.ParseFile(configFile)
 
 	if err != nil {
 		return nil, err
 	}
 
 	return &Runner{
-		config: &config,
+		config: config,
 	}, nil
 }
 
@@ -47,9 +47,9 @@ func (r *Runner) Run() error {
 
 	r.config.Password = password
 
-	client := NewSSH(*r)
+	client := NewSSH(*r.config)
 
-	pwd, err := os.Getwd()
+	localCwd, err := os.Getwd()
 
 	if err != nil {
 		return err
@@ -61,9 +61,20 @@ func (r *Runner) Run() error {
 
 	defer client.Disconnect()
 
+	remoteCwd, err := client.Pwd()
+
+	if err != nil {
+		return err
+	}
+
+	r.config.CWD = remoteCwd
+
 	for step, action := range r.config.Actions {
 
 		switch action.Action {
+		case "CWD":
+			r.config.CWD = action.Arguments
+			break
 		case "RUN":
 			commandWithColor := color.YellowString(fmt.Sprintf("%v", action.Arguments))
 
@@ -86,7 +97,9 @@ func (r *Runner) Run() error {
 			targetDir := files[lastElementIndex-1]
 
 			if path.IsAbs(targetDir) == false {
-				targetDir = path.Join(r.config.CWD, targetDir)
+				if r.config.CWD != "" {
+					targetDir = path.Join(r.config.CWD, targetDir)
+				}
 			}
 
 			fmt.Printf("[Step %v]: COPY %s to %s\n", step+1, color.YellowString(strings.Join(sourceFiles, ", ")), color.GreenString(targetDir))
@@ -94,7 +107,7 @@ func (r *Runner) Run() error {
 			for _, filePath := range sourceFiles {
 
 				if path.IsAbs(filePath) == false {
-					filePath = path.Join(pwd, filePath)
+					filePath = path.Join(localCwd, filePath)
 				}
 
 				err := client.Copy(filePath, targetDir)
