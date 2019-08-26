@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 	"io"
+	"io/ioutil"
 	"net"
 	"os"
 	"path"
@@ -86,9 +87,7 @@ func (c *Client) Pwd() (string, error) {
 		return "", err
 	}
 
-	defer func() {
-		_ = session.Close()
-	}()
+	defer session.Close()
 
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
@@ -168,20 +167,32 @@ func (c *Client) downloadFile(remoteFilePath string, localDir string) error {
 
 	defer remoteFile.Close()
 
-	var localFileName = path.Base(remoteFilePath)
+	remoteFileStat, err := remoteFile.Stat()
+
+	if err != nil {
+		return err
+	}
+
+	localFileName := path.Base(remoteFilePath)
+	localFilePath := path.Join(localDir, localFileName)
 
 	// ensure local dir exist
 	if err := fs.EnsureDir(localDir); err != nil {
 		return err
 	}
 
-	localFile, err := os.Create(path.Join(localDir, localFileName))
+	localFile, err := os.Create(localFilePath)
 
 	if err != nil {
 		return err
 	}
 
 	defer localFile.Close()
+
+	// update mode
+	if err := os.Chmod(localFilePath, remoteFileStat.Mode()); err != nil {
+		return err
+	}
 
 	if _, err = remoteFile.WriteTo(localFile); err != nil {
 		return err
@@ -231,11 +242,7 @@ func (c *Client) Download(remoteFilePath string, localDir string) error {
 	}
 }
 
-func (c *Client) Copy(localFilePath string, remoteDir string) error {
-	if err := c.Run(fmt.Sprintf("mkdir -p %s", remoteDir)); err != nil {
-		return err
-	}
-
+func (c *Client) copyFile(localFilePath string, remoteDir string) error {
 	localFile, err := os.Open(localFilePath)
 
 	if err != nil {
@@ -244,31 +251,83 @@ func (c *Client) Copy(localFilePath string, remoteDir string) error {
 
 	defer localFile.Close()
 
-	remoteFileName := path.Base(localFilePath)
-
-	dstFile, err := c.sftpClient.Create(path.Join(remoteDir, remoteFileName))
+	localFileStat, err := localFile.Stat()
 
 	if err != nil {
 		return err
 	}
 
-	defer dstFile.Close()
+	remoteFileName := path.Base(localFilePath)
+	remoteFilePath := path.Join(remoteDir, remoteFileName)
+
+	if err := c.sftpClient.MkdirAll(remoteDir); err != nil {
+		return err
+	}
+
+	remoteFile, err := c.sftpClient.Create(remoteFilePath)
+
+	if err != nil {
+		return err
+	}
+
+	defer remoteFile.Close()
+
+	// update file mode
+	if err := c.sftpClient.Chmod(remoteFilePath, localFileStat.Mode()); err != nil {
+		return err
+	}
 
 	buf := make([]byte, 1024)
 	for {
-		n, err := localFile.Read(buf)
-
-		if err != nil {
-			return err
-		}
+		n, _ := localFile.Read(buf)
 
 		if n == 0 {
 			break
 		}
-		if _, err := dstFile.Write(buf[0:n]); err != nil {
+		if _, err := remoteFile.Write(buf[0:n]); err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+func (c *Client) copyDir(localFilePath string, remoteDir string) error {
+	files, err := ioutil.ReadDir(localFilePath)
+
+	if err != nil {
+		return err
+	}
+
+	remoteDir = path.Join(remoteDir, path.Base(localFilePath))
+
+	for _, file := range files {
+		fileName := file.Name()
+		absFilePath := path.Join(localFilePath, fileName)
+		if file.IsDir() {
+			if err = c.copyDir(absFilePath, remoteDir); err != nil {
+				return err
+			}
+		} else {
+			if err := c.copyFile(absFilePath, remoteDir); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (c *Client) Copy(localFilePath string, remoteDir string) error {
+	localStat, err := os.Stat(localFilePath)
+
+	if err != nil {
+		return err
+	}
+
+	if localStat.IsDir() {
+		return c.copyDir(localFilePath, remoteDir)
+	} else {
+		return c.copyFile(localFilePath, remoteDir)
+	}
 }

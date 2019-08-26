@@ -8,10 +8,11 @@
 
 Perform remote server tasks on local computer
 
-Features
+Features:
 
+- [x] Declarative workflow
 - [x] Copy local files to remote
-- [ ] Download remote files to local
+- [x] Download remote files to local
 - [x] Execute commands on the remote server
 
 ### Usage
