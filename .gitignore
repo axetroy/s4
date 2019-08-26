@@ -17,3 +17,4 @@
 # vendor/
 .idea
 *.s4
+bin

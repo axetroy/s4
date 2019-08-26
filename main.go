@@ -26,7 +26,7 @@ REPORT BUGS: https://github.com/axetroy/s4/issues
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "config, c",
-			Usage: "The s4 configuration file. Defaults '.s4'",
+			Usage: "The s4 configuration file.",
 			Value: ".s4", // default value
 		},
 	}
