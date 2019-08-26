@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/AlecAivazis/survey"
 	"github.com/axetroy/go-fs"
-	"github.com/axetroy/sshunter/internal/parser"
+	"github.com/axetroy/sshunter/lib/parser"
 	"github.com/fatih/color"
 	"os"
 	"path"

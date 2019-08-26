@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/axetroy/sshunter/internal/parser"
+	"github.com/axetroy/sshunter/lib/parser"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 	"io"

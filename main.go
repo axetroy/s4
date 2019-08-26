@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/axetroy/sshunter/internal/runner"
+	"github.com/axetroy/sshunter/lib/runner"
 	"github.com/urfave/cli"
 	"log"
 	"os"
