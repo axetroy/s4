@@ -13,17 +13,17 @@ defined the jobs for remote and do it at local.
 create a file name `.s4`
 
 ```s4
-HOST 192.168.0.1 # your remote server IP
+HOST 192.168.0.1 # remote SSH server address
 
-PORT 2222 # SSH port
+PORT 2222 # remote SSH server port
 
-USERNAME root # username for the host
+USERNAME axetroy # remote SSH server username
 
-CWD /root # set current work dir
+CWD /home/axetroy # set the current work dir to '/home/axetroy'
 
-COPY ./README.md ./test dir # copy local `./README` to the remote `/root/test`
+COPY star.py ./server # copy `start.py` to from local to remote server `/home/axetroy/server`
 
-RUN cat ./test/README.md # run the command
+RUN python ./server/start.py # execute command on remote server
 ```
 
 ```bash
@@ -32,14 +32,14 @@ $ s4 --help
 
 ### Documentation
 
-| Keyword  | Description                            | Multiple selection |
-| -------- | -------------------------------------- | ------------------ |
-| HOST     | remote ssh server address              | ✖️                 |
-| PORT     | remote ssh server port                 | ✖️                 |
-| USERNAME | remote ssh server username             | ✖️                 |
-| CWD      | set current work dir for remote server | ☑️                 |
-| COPY     | copy local files to remote server      | ☑️                 |
-| RUN      | run command in remote command          | ☑️                 |
+| Keyword  | Description                                                  | Multiple selection | example                      |
+| -------- | ------------------------------------------------------------ | ------------------ | ---------------------------- |
+| HOST     | remote SSH server address                                    | ✖️                 | HOST 192.168.0.1             |
+| PORT     | remote SSH server port                                       | ✖️                 | PORT 2022                    |
+| USERNAME | remote SSH server username                                   | ✖️                 | USERNAME axetroy             |
+| CWD      | set current work dir for remote server, almost like `cd xxx` | ☑️                 | CWD /home/axetroy            |
+| COPY     | copy local files to remote server                            | ☑️                 | COPY start.py ./server       |
+| RUN      | run command in remote command                                | ☑️                 | RUN python ./server/start.py |
 
 ### Build from source code
 
