@@ -27,7 +27,7 @@ USERNAME axetroy # remote SSH server username
 
 CWD /home/axetroy # set the current work dir to '/home/axetroy'
 
-COPY star.py ./server # copy `start.py` to from local to remote server `/home/axetroy/server`
+COPY star.py README.md ./server # copy files from local to remote server `/home/axetroy/server`
 
 RUN python ./server/start.py # execute command on remote server
 ```
