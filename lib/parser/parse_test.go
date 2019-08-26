@@ -64,6 +64,9 @@ HOST 192.168.0.1
 PORT 22 # remote ssh server port
 USERNAME axetroy
 
+ENV PRIVATE_KEY = 123
+ENV TOKEN = xxxx
+
 CWD /root # execute the root directory of the script
 
 COPY ./README ./test
@@ -76,6 +79,10 @@ RUN ls -lh
 				Port:     22,
 				Username: "axetroy",
 				CWD:      "/root",
+				Env: map[string]string{
+					"PRIVATE_KEY": "123",
+					"TOKEN":       "xxxx",
+				},
 				Actions: []Action{
 					{
 						Action:    "CWD",

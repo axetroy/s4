@@ -42,11 +42,12 @@ for more detail about command. print `s4 --help`
 
 ### Documentation
 
-| Keyword  | Description                                                  | Multiple selection | Example                      |
+| Syntax   | Description                                                  | Multiple selection | Example                      |
 | -------- | ------------------------------------------------------------ | ------------------ | ---------------------------- |
 | HOST     | remote SSH server address                                    | ✖️                 | HOST 192.168.0.1             |
 | PORT     | remote SSH server port                                       | ✖️                 | PORT 2022                    |
 | USERNAME | remote SSH server username                                   | ✖️                 | USERNAME axetroy             |
+| ENV      | set Environmental variable for RUN command                   | ☑️                 | ENV PRIVATE_KEY = 123        |
 | CWD      | set current work dir for remote server, almost like `cd xxx` | ☑️                 | CWD /home/axetroy            |
 | COPY     | copy local files to remote server                            | ☑️                 | COPY start.py ./server       |
 | RUN      | run command in remote command                                | ☑️                 | RUN python ./server/start.py |

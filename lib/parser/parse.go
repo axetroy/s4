@@ -18,6 +18,7 @@ type Config struct {
 	Host     string
 	Port     int
 	CWD      string
+	Env      map[string]string
 	Username string
 	Password string
 	Actions  []Action
@@ -60,6 +61,8 @@ func Parse(content []byte) (c Config, err error) {
 	raw := string(content[:])
 	lines := strings.Split(raw, "\n")
 
+	c.Env = map[string]string{}
+
 	for _, line := range lines {
 		s := strings.Trim(line, "")
 		if s == "" {
@@ -101,6 +104,19 @@ func Parse(content []byte) (c Config, err error) {
 				Action:    keyword,
 				Arguments: RemoveComment(value),
 			})
+			break
+		case "ENV":
+			keyValuePair := strings.Split(RemoveComment(strings.Trim(value, " ")), "=")
+
+			if len(keyValuePair) < 2 {
+				err = errors.New(fmt.Sprintf("Invalid ENV '%s'", value))
+				return
+			}
+
+			envKey := strings.Trim(keyValuePair[0], " ")
+			envValue := strings.Trim(strings.Join(keyValuePair[1:], "="), " ")
+
+			c.Env[envKey] = envValue
 			break
 		case "RUN":
 			c.Actions = append(c.Actions, Action{
