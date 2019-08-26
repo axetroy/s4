@@ -16,7 +16,7 @@ Features
 
 ### Usage
 
-create a file name `.s4`
+step 1: create a file name `.s4`
 
 ```s4
 HOST 192.168.0.1 # remote SSH server address
@@ -32,9 +32,13 @@ COPY star.py ./server # copy `start.py` to from local to remote server `/home/ax
 RUN python ./server/start.py # execute command on remote server
 ```
 
+step 2: run the following command
+
 ```bash
-$ s4 --help
+> s4
 ```
+
+for more detail about command. print `s4 --help`
 
 ### Documentation
 
