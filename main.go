@@ -12,7 +12,7 @@ func main() {
 	app := cli.NewApp()
 
 	app.Name = "s4"
-	app.Usage = "defined the jobs for remote and do it at local"
+	app.Usage = "Perform remote server tasks on local computer"
 	app.Version = "0.1.0"
 
 	cli.AppHelpTemplate = fmt.Sprintf(`%s
@@ -29,12 +29,21 @@ REPORT BUGS: https://github.com/axetroy/s4/issues
 			Usage: "The s4 configuration file.",
 			Value: ".s4", // default value
 		},
+		cli.StringFlag{
+			Name:  "password",
+			Usage: "Specify the password for the server",
+		},
 	}
 
 	app.Action = func(c *cli.Context) error {
 		configFile := c.String("config")
+		password := c.String("password")
 
 		r, err := runner.NewRunner(configFile)
+
+		if password != "" {
+			r.Config.Password = password
+		}
 
 		if err != nil {
 			return err

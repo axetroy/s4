@@ -14,7 +14,7 @@ import (
 )
 
 type Runner struct {
-	config *parser.Config
+	Config *parser.Config
 }
 
 func NewRunner(configFile string) (*Runner, error) {
@@ -30,24 +30,26 @@ func NewRunner(configFile string) (*Runner, error) {
 	}
 
 	return &Runner{
-		config: config,
+		Config: config,
 	}, nil
 }
 
 func (r *Runner) Run() error {
-	// ask password for remote server
-	password := ""
-	prompt := &survey.Password{
-		Message: "Please type remote server's password",
+	if r.Config.Password == "" {
+		// ask password for remote server
+		password := ""
+		prompt := &survey.Password{
+			Message: "Please type remote server's password",
+		}
+
+		if err := survey.AskOne(prompt, &password); err != nil {
+			return err
+		}
+
+		r.Config.Password = password
 	}
 
-	if err := survey.AskOne(prompt, &password); err != nil {
-		return err
-	}
-
-	r.config.Password = password
-
-	client := NewSSH(*r.config)
+	client := NewSSH(*r.Config)
 
 	localCwd, err := os.Getwd()
 
@@ -67,13 +69,13 @@ func (r *Runner) Run() error {
 		return err
 	}
 
-	r.config.CWD = remoteCwd
+	r.Config.CWD = remoteCwd
 
-	for step, action := range r.config.Actions {
+	for step, action := range r.Config.Actions {
 
 		switch action.Action {
 		case "CWD":
-			r.config.CWD = action.Arguments
+			r.Config.CWD = action.Arguments
 			break
 		case "RUN":
 			commandWithColor := color.YellowString(fmt.Sprintf("%v", action.Arguments))
@@ -97,8 +99,8 @@ func (r *Runner) Run() error {
 			targetDir := files[lastElementIndex-1]
 
 			if path.IsAbs(targetDir) == false {
-				if r.config.CWD != "" {
-					targetDir = path.Join(r.config.CWD, targetDir)
+				if r.Config.CWD != "" {
+					targetDir = path.Join(r.Config.CWD, targetDir)
 				}
 			}
 
