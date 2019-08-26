@@ -54,7 +54,7 @@ for more detail about command. print `s4 --help`
 | DOWNLOAD | download remote files to local                                           | ☑️       | DOWNLOAD start.py ./server   |
 | COPY     | copy file on remote server                                               | ☑️       | COPY data.db data.db.bak     |
 | MOVE     | move file on remote server                                               | ☑️       | MOVE data.bak data.db        |
-| DELETE   | delete files on remote server, for security, directory cannot be removed | ☑️       | MOVE file1 file2             |
+| DELETE   | delete files on remote server, for security, directory cannot be removed | ☑️       | DELETE file1 file2           |
 | RUN      | run command in remote command                                            | ☑️       | RUN python ./server/start.py |
 
 ### Build from source code
