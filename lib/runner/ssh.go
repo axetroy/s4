@@ -139,6 +139,18 @@ func (c *Client) Run(command string) error {
 		command = "cd " + c.config.CWD + " && " + command
 	}
 
+	var setEnvCommand []string
+
+	// set environmental variable before run
+	for key, value := range c.config.Env {
+		// export KEY=VALUE
+		setEnvCommand = append(setEnvCommand, fmt.Sprintf("export %s=%s", key, value))
+	}
+
+	if len(setEnvCommand) != 0 {
+		command = strings.Join(setEnvCommand, " && ") + " && " + command
+	}
+
 	if err = session.Run(command); err != nil {
 		return err
 	}

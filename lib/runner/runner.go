@@ -76,6 +76,7 @@ func (r *Runner) Run() error {
 		switch action.Action {
 		case "CWD":
 			r.Config.CWD = action.Arguments
+			fmt.Printf("[Step %v]: CWD %s\n", step+1, color.GreenString(action.Arguments))
 			break
 		case "RUN":
 			commandWithColor := color.YellowString(fmt.Sprintf("%v", action.Arguments))
@@ -104,7 +105,7 @@ func (r *Runner) Run() error {
 				}
 			}
 
-			fmt.Printf("[Step %v]: COPY %s to %s\n", step+1, color.YellowString(strings.Join(sourceFiles, ", ")), color.GreenString(targetDir))
+			fmt.Printf("[Step %v]: COPY local:%s to remote:%s\n", step+1, color.YellowString(strings.Join(sourceFiles, ", ")), color.GreenString(targetDir))
 
 			for _, filePath := range sourceFiles {
 
