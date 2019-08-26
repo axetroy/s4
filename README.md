@@ -44,12 +44,18 @@ $ s4 --help
 ### Build from source code
 
 ```bash
-go get -v -u github.com/axetroy/s4
-cd $GOPATH/src/github.com/axetroy/s4
+> go get -v -u github.com/axetroy/s4
+> cd $GOPATH/src/github.com/axetroy/s4
+> make build
+> ls -lh ./bin
 
-make build
-ls -lh ./bin
-
+total 85976
+-rwxr-xr-x  1 axetroy  staff   7.1M Aug 26 20:19 linux_x64_s4
+-rwxr-xr-x  1 axetroy  staff   6.4M Aug 26 20:19 linux_x86_s4
+-rwxr-xr-x  1 axetroy  staff   7.0M Aug 26 20:19 osx_x64_s4
+-rwxr-xr-x  1 axetroy  staff   6.3M Aug 26 20:19 osx_x86_s4
+-rwxr-xr-x  1 axetroy  staff   6.9M Aug 26 20:19 windows_x64_s4.exe
+-rwxr-xr-x  1 axetroy  staff   6.2M Aug 26 20:19 windows_x86_s4.exe
 ```
 
 ### Test
