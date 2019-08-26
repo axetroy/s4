@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/axetroy/go-fs"
 	"github.com/axetroy/sshunter/lib/parser"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
@@ -152,6 +153,37 @@ func (c *Client) Run(command string) error {
 	}
 
 	if err = session.Run(command); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Client) Download(remoteFilePath string, localDir string) error {
+	remoteFile, err := c.sftpClient.Open(remoteFilePath)
+
+	if err != nil {
+		return err
+	}
+
+	defer remoteFile.Close()
+
+	var localFileName = path.Base(remoteFilePath)
+
+	localFile, err := os.Create(path.Join(localDir, localFileName))
+
+	if err != nil {
+		return err
+	}
+
+	defer localFile.Close()
+
+	// ensure local dir exist
+	if err := fs.EnsureDir(localDir); err != nil {
+		return err
+	}
+
+	if _, err = remoteFile.WriteTo(localFile); err != nil {
 		return err
 	}
 

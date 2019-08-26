@@ -100,6 +100,8 @@ func Parse(content []byte) (c Config, err error) {
 			}
 			fallthrough
 		case "COPY":
+			fallthrough
+		case "DOWNLOAD":
 			c.Actions = append(c.Actions, Action{
 				Action:    keyword,
 				Arguments: RemoveComment(value),

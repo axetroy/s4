@@ -9,7 +9,6 @@ import (
 	"github.com/fatih/color"
 	"os"
 	"path"
-	"regexp"
 	"strings"
 )
 
@@ -88,34 +87,60 @@ func (r *Runner) Run() error {
 			}
 			break
 		case "COPY":
-			files := regexp.MustCompile("\\s+").Split(action.Arguments, -1)
+			f, err := parser.FileParser(action.Arguments)
 
-			if len(files) < 2 {
-				return errors.New("invalid Copy command")
+			if err != nil {
+				return err
 			}
 
-			lastElementIndex := len(files)
-
-			sourceFiles := files[:lastElementIndex-1]
-			targetDir := files[lastElementIndex-1]
-
-			if path.IsAbs(targetDir) == false {
+			if path.IsAbs(f.Destination) == false {
 				if r.Config.CWD != "" {
-					targetDir = path.Join(r.Config.CWD, targetDir)
+					f.Destination = path.Join(r.Config.CWD, f.Destination)
 				}
 			}
 
-			fmt.Printf("[Step %v]: COPY local:%s to remote:%s\n", step+1, color.YellowString(strings.Join(sourceFiles, ", ")), color.GreenString(targetDir))
+			fmt.Printf("[Step %v]: COPY local:%s to remote:%s\n", step+1, color.YellowString(strings.Join(f.Source, ", ")), color.GreenString(f.Destination))
 
-			for _, filePath := range sourceFiles {
+			for _, filePath := range f.Source {
 
 				if path.IsAbs(filePath) == false {
 					filePath = path.Join(localCwd, filePath)
 				}
 
-				err := client.Copy(filePath, targetDir)
+				err := client.Copy(filePath, f.Destination)
 
-				fmt.Println("copy", filePath, "-->", targetDir)
+				fmt.Println("copy", filePath, "-->", f.Destination)
+
+				if err != nil {
+					return err
+				}
+			}
+
+			break
+		case "DOWNLOAD":
+			f, err := parser.FileParser(action.Arguments)
+
+			if err != nil {
+				return err
+			}
+
+			if path.IsAbs(f.Destination) == false {
+				f.Destination = path.Join(localCwd, f.Destination)
+			}
+
+			fmt.Printf("[Step %v]: DOWNLOAD remote:%s to local:%s\n", step+1, color.YellowString(strings.Join(f.Source, ", ")), color.GreenString(f.Destination))
+
+			for _, filePath := range f.Source {
+
+				if path.IsAbs(filePath) == false {
+					if r.Config.CWD != "" {
+						filePath = path.Join(r.Config.CWD, filePath)
+					}
+				}
+
+				err := client.Download(filePath, f.Destination)
+
+				fmt.Println("download", filePath, "-->", f.Destination)
 
 				if err != nil {
 					return err

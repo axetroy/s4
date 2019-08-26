@@ -50,6 +50,7 @@ for more detail about command. print `s4 --help`
 | ENV      | set environmental variable for `RUN` command | ☑️       | ENV PRIVATE_KEY = 123        |
 | CWD      | set current work dir for remote server       | ☑️       | CWD /home/axetroy            |
 | COPY     | copy local files to remote server            | ☑️       | COPY start.py ./server       |
+| DOWNLOAD | download remote files to local               | ☑️       | DOWNLOAD start.py ./server   |
 | RUN      | run command in remote command                | ☑️       | RUN python ./server/start.py |
 
 ### Build from source code
