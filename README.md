@@ -32,7 +32,7 @@ $ s4 --help
 
 ### Documentation
 
-| Keyword  | Description                                                  | Multiple selection | example                      |
+| Keyword  | Description                                                  | Multiple selection | Example                      |
 | -------- | ------------------------------------------------------------ | ------------------ | ---------------------------- |
 | HOST     | remote SSH server address                                    | ✖️                 | HOST 192.168.0.1             |
 | PORT     | remote SSH server port                                       | ✖️                 | PORT 2022                    |
