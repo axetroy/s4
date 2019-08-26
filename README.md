@@ -11,7 +11,7 @@ Perform remote server tasks on local computer
 Features:
 
 - [x] Declarative workflow
-- [x] Copy local files to remote
+- [x] Upload local files to remote
 - [x] Download remote files to local
 - [x] Execute commands on the remote server
 
@@ -28,7 +28,7 @@ USERNAME axetroy # remote SSH server username
 
 CWD /home/axetroy # set the current work dir to '/home/axetroy'
 
-COPY star.py README.md ./server # copy files from local to remote server `/home/axetroy/server`
+UPLOAD star.py README.md ./server # upload files to remote server `/home/axetroy/server`
 
 RUN python ./server/start.py # execute command on remote server
 ```
@@ -43,16 +43,19 @@ for more detail about command. print `s4 --help`
 
 ### Documentation
 
-| Syntax   | Description                                  | Multiple | Example                      |
-| -------- | -------------------------------------------- | -------- | ---------------------------- |
-| HOST     | remote SSH server address                    | ✖️       | HOST 192.168.0.1             |
-| PORT     | remote SSH server port                       | ✖️       | PORT 2022                    |
-| USERNAME | remote SSH server username                   | ✖️       | USERNAME axetroy             |
-| ENV      | set environmental variable for `RUN` command | ☑️       | ENV PRIVATE_KEY = 123        |
-| CWD      | set current work dir for remote server       | ☑️       | CWD /home/axetroy            |
-| COPY     | copy local files to remote server            | ☑️       | COPY start.py ./server       |
-| DOWNLOAD | download remote files to local               | ☑️       | DOWNLOAD start.py ./server   |
-| RUN      | run command in remote command                | ☑️       | RUN python ./server/start.py |
+| Syntax   | Description                                                                    | Multiple | Example                      |
+| -------- | ------------------------------------------------------------------------------ | -------- | ---------------------------- |
+| HOST     | remote SSH server address                                                      | ✖️       | HOST 192.168.0.1             |
+| PORT     | remote SSH server port                                                         | ✖️       | PORT 2022                    |
+| USERNAME | remote SSH server username                                                     | ✖️       | USERNAME axetroy             |
+| ENV      | set environmental variable for `RUN` command                                   | ☑️       | ENV PRIVATE_KEY = 123        |
+| CWD      | set current work dir for remote server                                         | ☑️       | CWD /home/axetroy            |
+| UPLOAD   | upload local files to remote server                                            | ☑️       | UPLOAD start.py ./server     |
+| DOWNLOAD | download remote files to local                                                 | ☑️       | DOWNLOAD start.py ./server   |
+| COPY     | copy file on remote server                                                     | ☑️       | COPY data.db data.db.bak     |
+| MOVE     | move file on remote server                                                     | ☑️       | MOVE data.bak data.db        |
+| DELETE   | delete files on remote server, for security reasons, only files can be removed | ☑️       | MOVE file1 file2             |
+| RUN      | run command in remote command                                                  | ☑️       | RUN python ./server/start.py |
 
 ### Build from source code
 

@@ -101,6 +101,12 @@ func Parse(content []byte) (c Config, err error) {
 			fallthrough
 		case "COPY":
 			fallthrough
+		case "MOVE":
+			fallthrough
+		case "DELETE":
+			fallthrough
+		case "UPLOAD":
+			fallthrough
 		case "DOWNLOAD":
 			c.Actions = append(c.Actions, Action{
 				Action:    keyword,

@@ -70,23 +70,104 @@ func (r *Runner) Run() error {
 
 	r.Config.CWD = remoteCwd
 
-	for step, action := range r.Config.Actions {
+	step := 1
+
+	for _, action := range r.Config.Actions {
 
 		switch action.Action {
 		case "CWD":
 			r.Config.CWD = action.Arguments
-			fmt.Printf("[Step %v]: CWD %s\n", step+1, color.GreenString(action.Arguments))
+			fmt.Printf("[Step %v]: CWD %s\n", step, color.GreenString(action.Arguments))
+			step += 1
 			break
 		case "RUN":
 			commandWithColor := color.YellowString(fmt.Sprintf("%v", action.Arguments))
 
-			fmt.Printf("[Step %v]: RUN %s\n", step+1, commandWithColor)
+			fmt.Printf("[Step %v]: RUN %s\n", step, commandWithColor)
 
 			if err := client.Run(action.Arguments); err != nil {
 				return err
 			}
+
+			step += 1
+			break
+		case "MOVE":
+			args := strings.Split(action.Arguments, " ")
+
+			if len(args) != 2 {
+				return errors.New(fmt.Sprintf("move require source and destination but got `%s`", args))
+			}
+
+			sourceFilepath := strings.Trim(args[0], " ")
+			destinationFilepath := strings.Trim(args[1], " ")
+
+			if path.IsAbs(sourceFilepath) == false {
+				sourceFilepath = path.Join(r.Config.CWD, sourceFilepath)
+			}
+
+			if path.IsAbs(destinationFilepath) == false {
+				destinationFilepath = path.Join(r.Config.CWD, destinationFilepath)
+			}
+
+			fmt.Printf("[Step %v]: MOVE %s to %s\n", step, color.YellowString(sourceFilepath), color.GreenString(destinationFilepath))
+
+			if err := client.Move(sourceFilepath, destinationFilepath); err != nil {
+				return err
+			}
+
+			step += 1
+
 			break
 		case "COPY":
+			args := strings.Split(action.Arguments, " ")
+
+			if len(args) != 2 {
+				return errors.New(fmt.Sprintf("copy require source and destination but got `%s`", args))
+			}
+
+			sourceFilepath := strings.Trim(args[0], " ")
+			destinationFilepath := strings.Trim(args[1], " ")
+
+			if path.IsAbs(sourceFilepath) == false {
+				sourceFilepath = path.Join(r.Config.CWD, sourceFilepath)
+			}
+
+			if path.IsAbs(destinationFilepath) == false {
+				destinationFilepath = path.Join(r.Config.CWD, destinationFilepath)
+			}
+
+			fmt.Printf("[Step %v]: COPY %s to %s\n", step, color.YellowString(sourceFilepath), color.GreenString(destinationFilepath))
+
+			if err := client.Copy(sourceFilepath, destinationFilepath); err != nil {
+				return err
+			}
+
+			step += 1
+
+			break
+		case "DELETE":
+			args := strings.Split(action.Arguments, " ")
+
+			var files []string
+
+			for _, file := range args {
+				if path.IsAbs(file) == false {
+					file = path.Join(r.Config.CWD, file)
+				}
+
+				files = append(files, file)
+			}
+
+			fmt.Printf("[Step %v]: DELETE %s\n", step, color.YellowString(action.Arguments))
+
+			if err := client.Delete(files...); err != nil {
+				return err
+			}
+
+			step += 1
+
+			break
+		case "UPLOAD":
 			f, err := parser.FileParser(action.Arguments)
 
 			if err != nil {
@@ -99,7 +180,7 @@ func (r *Runner) Run() error {
 				}
 			}
 
-			fmt.Printf("[Step %v]: COPY local:%s to remote:%s\n", step+1, color.YellowString(strings.Join(f.Source, ", ")), color.GreenString(f.Destination))
+			fmt.Printf("[Step %v]: UPLOAD local:%s to remote:%s\n", step, color.YellowString(strings.Join(f.Source, ", ")), color.GreenString(f.Destination))
 
 			for _, filePath := range f.Source {
 
@@ -116,6 +197,8 @@ func (r *Runner) Run() error {
 				}
 			}
 
+			step += 1
+
 			break
 		case "DOWNLOAD":
 			f, err := parser.FileParser(action.Arguments)
@@ -128,7 +211,7 @@ func (r *Runner) Run() error {
 				f.Destination = path.Join(localCwd, f.Destination)
 			}
 
-			fmt.Printf("[Step %v]: DOWNLOAD remote:%s to local:%s\n", step+1, color.YellowString(strings.Join(f.Source, ", ")), color.GreenString(f.Destination))
+			fmt.Printf("[Step %v]: DOWNLOAD remote:%s to local:%s\n", step, color.YellowString(strings.Join(f.Source, ", ")), color.GreenString(f.Destination))
 
 			for _, filePath := range f.Source {
 
@@ -146,6 +229,8 @@ func (r *Runner) Run() error {
 					return err
 				}
 			}
+
+			step += 1
 
 			break
 		default:

@@ -242,7 +242,7 @@ func (c *Client) Download(remoteFilePath string, localDir string) error {
 	}
 }
 
-func (c *Client) copyFile(localFilePath string, remoteDir string) error {
+func (c *Client) uploadFile(localFilePath string, remoteDir string) error {
 	localFile, err := os.Open(localFilePath)
 
 	if err != nil {
@@ -292,7 +292,7 @@ func (c *Client) copyFile(localFilePath string, remoteDir string) error {
 	return nil
 }
 
-func (c *Client) copyDir(localFilePath string, remoteDir string) error {
+func (c *Client) uploadDir(localFilePath string, remoteDir string) error {
 	files, err := ioutil.ReadDir(localFilePath)
 
 	if err != nil {
@@ -305,11 +305,11 @@ func (c *Client) copyDir(localFilePath string, remoteDir string) error {
 		fileName := file.Name()
 		absFilePath := path.Join(localFilePath, fileName)
 		if file.IsDir() {
-			if err = c.copyDir(absFilePath, remoteDir); err != nil {
+			if err = c.uploadDir(absFilePath, remoteDir); err != nil {
 				return err
 			}
 		} else {
-			if err := c.copyFile(absFilePath, remoteDir); err != nil {
+			if err := c.uploadFile(absFilePath, remoteDir); err != nil {
 				return err
 			}
 		}
@@ -318,7 +318,7 @@ func (c *Client) copyDir(localFilePath string, remoteDir string) error {
 	return nil
 }
 
-func (c *Client) Copy(localFilePath string, remoteDir string) error {
+func (c *Client) Upload(localFilePath string, remoteDir string) error {
 	localStat, err := os.Stat(localFilePath)
 
 	if err != nil {
@@ -326,8 +326,90 @@ func (c *Client) Copy(localFilePath string, remoteDir string) error {
 	}
 
 	if localStat.IsDir() {
-		return c.copyDir(localFilePath, remoteDir)
+		return c.uploadDir(localFilePath, remoteDir)
 	} else {
-		return c.copyFile(localFilePath, remoteDir)
+		return c.uploadFile(localFilePath, remoteDir)
 	}
+}
+
+func (c *Client) Copy(sourceFilepath string, destinationFilepath string) error {
+	sourceFile, err := c.sftpClient.Open(sourceFilepath)
+
+	if err != nil {
+		return err
+	}
+
+	defer sourceFile.Close()
+
+	destinationFile, err := c.sftpClient.Create(destinationFilepath)
+
+	if err != nil {
+		return err
+	}
+
+	defer destinationFile.Close()
+
+	if _, err = sourceFile.WriteTo(destinationFile); err != nil {
+		return err
+	}
+
+	// update new file mode and time
+	if sourceFileStat, err := sourceFile.Stat(); err != nil {
+		return err
+	} else {
+		err := c.sftpClient.Chmod(destinationFilepath, sourceFileStat.Mode())
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *Client) Move(oldFilepath string, newFilepath string) error {
+	return c.sftpClient.Rename(oldFilepath, newFilepath)
+}
+
+func (c *Client) Delete(files ...string) error {
+	cwd, err := c.sftpClient.Getwd()
+
+	if err != nil {
+		return err
+	}
+
+	for _, file := range files {
+		// prevent delete all system
+		if file == "/" || file == "" || file == "." || file == cwd {
+			fmt.Printf("igmore remove '%s'\n", file)
+			continue
+		}
+
+		paths := strings.Split(file, string(os.PathSeparator))
+
+		if len(paths) <= 2 {
+			fmt.Printf("igmore remove '%s'\n", file)
+			continue
+		}
+
+		stat, err := c.sftpClient.Stat(file)
+
+		if err != nil {
+			return err
+		}
+
+		if stat.IsDir() {
+			fmt.Printf("igmore remove directory '%s'\n", file)
+			//if err := c.sftpClient.RemoveDirectory(file); err != nil {
+			//	return err
+			//}
+		} else {
+			if err := c.sftpClient.Remove(file); err != nil {
+				return err
+			}
+		}
+
+	}
+
+	return nil
 }
