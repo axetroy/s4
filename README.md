@@ -37,4 +37,4 @@ $ s4 --help
 
 ### License
 
-The [MIT License](https://github.com/axetroy/kost/blob/master/LICENSE)
+The [MIT License](https://github.com/axetroy/s4/blob/master/LICENSE)
