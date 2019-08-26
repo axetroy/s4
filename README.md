@@ -1,3 +1,9 @@
+[![Build Status](https://travis-ci.com/axetroy/s4.svg?branch=master)](https://travis-ci.com/axetroy/s4)
+[![Coverage Status](https://coveralls.io/repos/github/axetroy/s4/badge.svg?branch=master)](https://coveralls.io/github/axetroy/s4?branch=master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/axetroy/s4)](https://goreportcard.com/report/github.com/axetroy/s4)
+![License](https://img.shields.io/github/license/axetroy/s4.svg)
+![Repo Size](https://img.shields.io/github/repo-size/axetroy/s4.svg)
+
 ## s4
 
 defined the jobs for remote and do it at local.
