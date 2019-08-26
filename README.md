@@ -35,6 +35,23 @@ $ s4 --help
 | COPY     | copy local files to remote server      | ☑️                 |
 | RUN      | run command in remote command          | ☑️                 |
 
+### Build from source code
+
+```bash
+go get -v -u github.com/axetroy/s4
+cd $GOPATH/src/github.com/axetroy/s4
+
+make build
+ls -lh ./bin
+
+```
+
+### Test
+
+```bash
+make test
+```
+
 ### License
 
 The [MIT License](https://github.com/axetroy/s4/blob/master/LICENSE)
