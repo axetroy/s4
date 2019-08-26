@@ -6,7 +6,13 @@
 
 ## s4
 
-defined the jobs for remote and do it at local.
+Perform remote server tasks on local computer
+
+Features
+
+- [x] Copy local files to remote
+- [ ] Download remote files to local
+- [x] Execute commands on the remote server
 
 ### Usage
 
