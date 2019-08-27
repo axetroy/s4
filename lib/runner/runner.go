@@ -8,6 +8,7 @@ import (
 	"github.com/axetroy/sshunter/lib/parser"
 	"github.com/fatih/color"
 	"os"
+	"os/exec"
 	"path"
 	"strings"
 )
@@ -78,6 +79,67 @@ func (r *Runner) Run() error {
 		case "CWD":
 			r.Config.CWD = action.Arguments
 			fmt.Printf("[Step %v]: CWD %s\n", step, color.GreenString(action.Arguments))
+			step += 1
+			break
+		case "BASH":
+			commandWithColor := color.YellowString(fmt.Sprintf("%v", action.Arguments))
+			fmt.Printf("[Step %v]: CMD %s\n", step, commandWithColor)
+
+			bashPath := ""
+
+			if bashBinPath, bashNotExist := exec.LookPath("bash"); bashNotExist != nil {
+				if shBinPath, shNotExist := exec.LookPath("sh"); shNotExist != nil {
+					return errors.New(" can not found 'bash' in your system")
+				} else {
+					bashPath = shBinPath
+				}
+			} else {
+				bashPath = bashBinPath
+			}
+
+			c := exec.Command(bashPath, "-c", action.Arguments)
+
+			c.Stdout = os.Stdout
+			c.Stderr = os.Stderr
+
+			if err := c.Run(); err != nil {
+				return err
+			}
+
+			if c.ProcessState.Success() == false {
+				return errors.New(fmt.Sprintf("run command '%s' fail.", action.Arguments))
+			}
+
+			step += 1
+
+			break
+		case "CMD":
+			commandWithColor := color.YellowString(fmt.Sprintf("%v", action.Arguments))
+
+			fmt.Printf("[Step %v]: CMD %s\n", step, commandWithColor)
+
+			commands := strings.Split(action.Arguments, " ")
+
+			command := commands[0]
+			args := commands[1:]
+
+			if _, err := exec.LookPath(command); err != nil {
+				fmt.Printf("didn't find '%s' executable\n", command)
+			}
+
+			c := exec.Command(command, args...)
+
+			c.Stdout = os.Stdout
+			c.Stderr = os.Stderr
+
+			if err := c.Run(); err != nil {
+				return err
+			}
+
+			if c.ProcessState.Success() == false {
+				return errors.New(fmt.Sprintf("run command '%s' fail.", action.Arguments))
+			}
+
 			step += 1
 			break
 		case "RUN":

@@ -126,6 +126,10 @@ func Parse(content []byte) (c Config, err error) {
 
 			c.Env[envKey] = envValue
 			break
+		case "BASH":
+			fallthrough
+		case "CMD":
+			fallthrough
 		case "RUN":
 			c.Actions = append(c.Actions, Action{
 				Action:    keyword,
