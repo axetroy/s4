@@ -59,6 +59,10 @@ for more detail about command. print `s4 --help`
 | CMD      | run command in local server                              | ☑️       | CMD ["cat", "README.md"]              |
 | BASH     | run bash script in local server                          | ☑️       | BASH cat package.json \| grep version |
 
+### Download
+
+download from the [release page](https://github.com/axetroy/s4/releases)
+
 ### Build from source code
 
 ```bash
