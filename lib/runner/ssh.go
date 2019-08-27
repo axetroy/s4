@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
@@ -288,20 +289,12 @@ func (c *Client) uploadFile(localFilePath string, remoteDir string) error {
 	bar.Set(pb.Bytes, true)
 	bar.SetWriter(os.Stdout)
 
-	// read 1M per times
-	buf := make([]byte, 1024*1024)
-	for {
-		n, _ := localFile.Read(buf)
+	localFileReader := bufio.NewReader(localFile)
 
-		if n == 0 {
-			break
-		}
+	barReader := bar.NewProxyReader(localFileReader)
 
-		if _, err := remoteFile.Write(buf[0:n]); err != nil {
-			return err
-		}
-
-		bar.Add(n)
+	if _, err := remoteFile.ReadFrom(barReader); err != nil {
+		return err
 	}
 
 	bar.Finish()
