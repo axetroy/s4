@@ -264,8 +264,6 @@ func (r *Runner) Run() error {
 
 				err := client.Upload(filePath, f.Destination)
 
-				fmt.Println("copy", filePath, "-->", f.Destination)
-
 				if err != nil {
 					return err
 				}

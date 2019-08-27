@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/axetroy/go-fs"
 	"github.com/axetroy/sshunter/lib/parser"
+	"github.com/cheggaaa/pb/v3"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 	"io"
@@ -277,17 +278,33 @@ func (c *Client) uploadFile(localFilePath string, remoteDir string) error {
 		return err
 	}
 
-	buf := make([]byte, 1024)
+	localFileSize := localFileStat.Size()
+
+	tmpl := fmt.Sprintf(`{{string . "prefix"}}{{ green "%s" }} {{counters . }} {{ bar . "[" "=" ">" "-" "]"}} {{percent . }} {{speed . }}{{string . "suffix"}}`, remoteFilePath)
+
+	// start bar based on our template
+	bar := pb.ProgressBarTemplate(tmpl).Start64(localFileSize)
+
+	bar.Set(pb.Bytes, true)
+	bar.SetWriter(os.Stdout)
+
+	// read 1M per times
+	buf := make([]byte, 1024*1024)
 	for {
 		n, _ := localFile.Read(buf)
 
 		if n == 0 {
 			break
 		}
+
 		if _, err := remoteFile.Write(buf[0:n]); err != nil {
 			return err
 		}
+
+		bar.Add(n)
 	}
+
+	bar.Finish()
 
 	return nil
 }
