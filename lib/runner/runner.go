@@ -50,7 +50,7 @@ func (r *Runner) Run() error {
 		r.Config.Password = password
 	}
 
-	client := NewSSH(*r.Config)
+	client := NewSSH(r.Config)
 
 	localCwd, err := os.Getwd()
 
@@ -77,7 +77,7 @@ func (r *Runner) Run() error {
 	for _, action := range r.Config.Actions {
 
 		switch action.Action {
-		case "CWD":
+		case "CD":
 			r.Config.CWD = action.Arguments
 			fmt.Printf("[Step %v]: CWD %s\n", step, color.GreenString(action.Arguments))
 			step += 1

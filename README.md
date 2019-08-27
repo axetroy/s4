@@ -20,17 +20,17 @@ Features:
 step 1: create a file name `.s4`
 
 ```s4
-HOST 192.168.0.1 # remote SSH server address
+HOST 192.168.0.1
 
-PORT 2222 # remote SSH server port
+PORT 2222
 
-USERNAME axetroy # remote SSH server username
+USERNAME axetroy
 
-CWD /home/axetroy # set the current work dir to '/home/axetroy'
+UPLOAD script1.py script2.js ./server
 
-UPLOAD star.py README.md ./server # upload files to remote server `/home/axetroy/server`
+RUN python ./server/script1.py
 
-RUN python ./server/start.py # execute command on remote server
+RUN node ./server/script2.js
 ```
 
 step 2: run the following command
@@ -49,7 +49,7 @@ for more detail about command. print `s4 --help`
 | PORT     | remote SSH server port                                   | ✖️       | PORT 2022                             |
 | USERNAME | remote SSH server username                               | ✖️       | USERNAME axetroy                      |
 | ENV      | set environmental variable for `RUN` command             | ☑️       | ENV PRIVATE_KEY = 123                 |
-| CWD      | set current work dir for remote server                   | ☑️       | CWD /home/axetroy                     |
+| CD       | change current working directory of remote server        | ☑️       | CD /home/axetroy                      |
 | UPLOAD   | upload local files to remote server                      | ☑️       | UPLOAD start.py ./server              |
 | DOWNLOAD | download remote files to local                           | ☑️       | DOWNLOAD start.py ./server            |
 | COPY     | copy file on remote server                               | ☑️       | COPY data.db data.db.bak              |

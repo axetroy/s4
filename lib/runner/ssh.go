@@ -2,8 +2,6 @@ package runner
 
 import (
 	"bufio"
-	"bytes"
-	"errors"
 	"fmt"
 	"github.com/axetroy/go-fs"
 	"github.com/axetroy/sshunter/lib/parser"
@@ -19,12 +17,12 @@ import (
 )
 
 type Client struct {
-	config     parser.Config
+	config     *parser.Config
 	sshClient  *ssh.Client
 	sftpClient *sftp.Client
 }
 
-func NewSSH(c parser.Config) *Client {
+func NewSSH(c *parser.Config) *Client {
 	return &Client{
 		config:     c,
 		sshClient:  nil,
@@ -82,31 +80,7 @@ func (c *Client) Disconnect() error {
 }
 
 func (c *Client) Pwd() (string, error) {
-	// Create a session. It is one session per command.
-	session, err := c.sshClient.NewSession()
-
-	if err != nil {
-		return "", err
-	}
-
-	defer session.Close()
-
-	var stdout bytes.Buffer
-	var stderr bytes.Buffer
-	session.Stdout = &stdout
-	session.Stderr = &stderr
-
-	if err = session.Run("pwd"); err != nil {
-		msg := stderr.String()
-
-		if len(msg) > 0 {
-			return "", errors.New(msg)
-		}
-
-		return "", err
-	}
-
-	return strings.Trim(strings.Trim(stdout.String(), " "), "\n"), nil
+	return c.sftpClient.Getwd()
 }
 
 func (c *Client) Run(command string) error {
@@ -136,6 +110,8 @@ func (c *Client) Run(command string) error {
 	}
 
 	go io.Copy(os.Stdout, sessionStdErr)
+
+	//fmt.Println("当前", *c.config.CWD)
 
 	if c.config.CWD != "" {
 		command = "cd " + c.config.CWD + " && " + command

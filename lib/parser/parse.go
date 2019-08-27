@@ -54,12 +54,14 @@ func ParseFile(s4File string) (*Config, error) {
 		return nil, err
 	}
 
-	return &c, nil
+	return c, nil
 }
 
-func Parse(content []byte) (c Config, err error) {
+func Parse(content []byte) (c *Config, err error) {
 	raw := string(content[:])
 	lines := strings.Split(raw, "\n")
+
+	c = &Config{}
 
 	c.Env = map[string]string{}
 
@@ -94,10 +96,7 @@ func Parse(content []byte) (c Config, err error) {
 		case "USERNAME":
 			c.Username = RemoveComment(value)
 			break
-		case "CWD":
-			if c.CWD == "" {
-				c.CWD = RemoveComment(value)
-			}
+		case "CD":
 			fallthrough
 		case "COPY":
 			fallthrough
@@ -149,7 +148,7 @@ func Parse(content []byte) (c Config, err error) {
 }
 
 // check config file is valid of not
-func Check(c Config) error {
+func Check(c *Config) error {
 	if c.Host == "" {
 		return errors.New(fmt.Sprintf("Invalid 'host' %s", c.Host))
 	}
