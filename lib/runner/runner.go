@@ -79,7 +79,7 @@ func (r *Runner) Run() error {
 		switch action.Action {
 		case "CD":
 			r.Config.CWD = action.Arguments
-			fmt.Printf("[Step %v]: CWD %s\n", step, color.GreenString(action.Arguments))
+			fmt.Printf("[Step %v]: CD %s\n", step, color.GreenString(action.Arguments))
 			step += 1
 			break
 		case "BASH":
