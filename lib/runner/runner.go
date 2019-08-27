@@ -262,7 +262,7 @@ func (r *Runner) Run() error {
 					filePath = path.Join(localCwd, filePath)
 				}
 
-				err := client.Copy(filePath, f.Destination)
+				err := client.Upload(filePath, f.Destination)
 
 				fmt.Println("copy", filePath, "-->", f.Destination)
 
