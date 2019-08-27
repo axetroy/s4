@@ -191,14 +191,28 @@ func (c *Client) downloadFile(remoteFilePath string, localDir string) error {
 
 	defer localFile.Close()
 
+	remoteFileSize := remoteFileStat.Size()
+
+	tmpl := fmt.Sprintf(`{{string . "prefix"}}{{ green "%s" }} {{counters . }} {{ bar . "[" "=" ">" "-" "]"}} {{percent . }} {{speed . }}{{string . "suffix"}}`, localFilePath)
+
+	// start bar based on our template
+	bar := pb.ProgressBarTemplate(tmpl).Start64(remoteFileSize)
+
+	bar.Set(pb.Bytes, true)
+	bar.SetWriter(os.Stdout)
+
+	barReader := bar.NewProxyReader(remoteFile)
+
 	// update mode
 	if err := os.Chmod(localFilePath, remoteFileStat.Mode()); err != nil {
 		return err
 	}
 
-	if _, err = remoteFile.WriteTo(localFile); err != nil {
+	if _, err := io.Copy(localFile, barReader); err != nil {
 		return err
 	}
+
+	bar.Finish()
 
 	return nil
 }
