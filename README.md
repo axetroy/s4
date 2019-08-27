@@ -56,7 +56,7 @@ for more detail about command. print `s4 --help`
 | MOVE     | move file on remote server                               | ☑️       | MOVE data.bak data.db                 |
 | DELETE   | delete files on remote server, directory will be ignored | ☑️       | DELETE file1 file2                    |
 | RUN      | run command in remote server                             | ☑️       | RUN python ./remote/start.py          |
-| CMD      | run command in local server                              | ☑️       | CMD python ./local/start.py           |
+| CMD      | run command in local server                              | ☑️       | CMD ["cat", "README.md"]              |
 | BASH     | run bash script in local server                          | ☑️       | BASH cat package.json \| grep version |
 
 ### Build from source code

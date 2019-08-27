@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/AlecAivazis/survey"
@@ -118,7 +119,18 @@ func (r *Runner) Run() error {
 
 			fmt.Printf("[Step %v]: CMD %s\n", step, commandWithColor)
 
-			commands := strings.Split(action.Arguments, " ")
+			type JsonType struct {
+				Array []string
+			}
+
+			var commands []string
+
+			if err := json.Unmarshal([]byte(action.Arguments), &commands); err != nil {
+
+				msg := fmt.Sprintf("CMD require JSON array format but got `%s`\n", action.Arguments)
+
+				return errors.New(msg)
+			}
 
 			command := commands[0]
 			args := commands[1:]
