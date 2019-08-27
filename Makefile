@@ -4,16 +4,22 @@ test:
 build:
 	make linux
 	make windows
-	make macos
+	make osx
+
+build-tag:
+	make build
 
 linux:
-	CGO_ENABLED=0 GOOS=linux GOARCH=386 go build -o ./bin/linux_x86_s4 ./main.go
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./bin/linux_x64_s4 ./main.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./bin/s4 ./main.go
+	cd ./bin && tar -czf s4_linux_x64.tar.gz s4
+	rm ./bin/s4
 
 windows:
-	CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -o ./bin/windows_x86_s4.exe ./main.go
-	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o ./bin/windows_x64_s4.exe ./main.go
+	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o ./bin/s4.exe ./main.go
+	cd ./bin && tar -czf s4_win_x64.tar.gz s4.exe
+	rm ./bin/s4.exe
 
-macos:
-	CGO_ENABLED=0 GOOS=darwin GOARCH=386 go build -o ./bin/osx_x86_s4 ./main.go
-	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o ./bin/osx_x64_s4 ./main.go
+osx:
+	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o ./bin/s4 ./main.go
+	cd ./bin && tar -czf s4_osx_x64.tar.gz s4
+	rm ./bin/s4
