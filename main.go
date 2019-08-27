@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/axetroy/sshunter/lib/runner"
 	"github.com/urfave/cli"
 	"log"
@@ -13,15 +12,20 @@ func main() {
 
 	app.Name = "s4"
 	app.Usage = "Perform remote server tasks on local computer"
-	app.Version = "0.1.0"
+	app.Version = "0.1.3"
+	app.Author = "Axetroy"
+	app.Email = "axetroy.dev@gmail.com"
 
-	cli.AppHelpTemplate = fmt.Sprintf(`%s
-
+	cli.AppHelpTemplate = `NAME:
+   {{.Name}} - {{.Usage}}
+USAGE:
+   {{.HelpName}} {{if .VisibleFlags}}[global options]{{end}}
+GLOBAL OPTIONS:
+   {{range .VisibleFlags}}{{.}}
+   {{end}}
 WEBSITE: https://github.com/axetroy/s4
-
 REPORT BUGS: https://github.com/axetroy/s4/issues
-
-`, cli.AppHelpTemplate)
+`
 
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
