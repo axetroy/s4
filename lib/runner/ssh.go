@@ -146,11 +146,11 @@ func (c *Client) Run(command string) error {
 	// set environmental variable before run
 	for key, value := range c.config.Env {
 		// export KEY=VALUE
-		setEnvCommand = append(setEnvCommand, fmt.Sprintf("%s=%s", key, value))
+		setEnvCommand = append(setEnvCommand, fmt.Sprintf("export %s=%s;", key, value))
 	}
 
 	if len(setEnvCommand) != 0 {
-		command = strings.Join(setEnvCommand, ";") + " " + command
+		command = strings.Join(setEnvCommand, " ") + " " + command
 	}
 
 	if err = session.Run(command); err != nil {
