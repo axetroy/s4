@@ -52,7 +52,7 @@ func TestParse(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		wantC   Config
+		wantC   *Config
 		wantErr bool
 	}{
 		{
@@ -67,25 +67,25 @@ USERNAME axetroy
 ENV PRIVATE_KEY = 123
 ENV TOKEN = xxxx
 
-CWD /root # execute the root directory of the script
+CD /root # execute the root directory of the script
 
 COPY ./README ./test
 
 RUN ls -lh
 `),
 			},
-			wantC: Config{
+			wantC: &Config{
 				Host:     "192.168.0.1",
 				Port:     22,
 				Username: "axetroy",
-				CWD:      "/root",
+				CWD:      "",
 				Env: map[string]string{
 					"PRIVATE_KEY": "123",
 					"TOKEN":       "xxxx",
 				},
 				Actions: []Action{
 					{
-						Action:    "CWD",
+						Action:    "CD",
 						Arguments: "/root",
 					},
 					{
