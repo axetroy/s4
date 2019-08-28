@@ -12,7 +12,7 @@ func main() {
 
 	app.Name = "s4"
 	app.Usage = "Perform remote server tasks on local computer"
-	app.Version = "0.2.0"
+	app.Version = "0.3.2"
 	app.Author = "Axetroy"
 	app.Email = "axetroy.dev@gmail.com"
 

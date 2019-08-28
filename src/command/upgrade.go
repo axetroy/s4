@@ -57,8 +57,6 @@ func Upgrade() error {
 
 	var currentAsset *Asset
 
-	fmt.Println(executablePath)
-
 	switch runtime.GOOS {
 	// osx
 	case "darwin":
@@ -104,7 +102,7 @@ func Upgrade() error {
 
 	if response.TagName == currentVersion {
 		fmt.Printf("You are using the latest version `%s`\n", color.GreenString(response.TagName))
-		//return nil
+		return nil
 	}
 
 	fmt.Printf("Upgrading from `%s` to `%s` ...\n", color.GreenString(currentVersion), color.YellowString(response.TagName))
@@ -139,7 +137,7 @@ func Upgrade() error {
 	if cmdOutput, err := exec.Command(executablePath, "--version").CombinedOutput(); err != nil {
 		return err
 	} else {
-		fmt.Println(cmdOutput)
+		fmt.Println(string(cmdOutput))
 	}
 
 	return nil
