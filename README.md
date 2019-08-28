@@ -22,11 +22,7 @@ step 1: create a file name `.s4`
 ```s4
 CONNECT root@192.168.0.1:22
 
-UPLOAD script1.py script2.js ./server
-
-RUN python ./server/script1.py
-
-RUN node ./server/script2.js
+RUN ls -lh
 ```
 
 step 2: run the following command
