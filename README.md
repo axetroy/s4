@@ -20,11 +20,7 @@ Features:
 step 1: create a file name `.s4`
 
 ```s4
-HOST 192.168.0.1
-
-PORT 2222
-
-USERNAME axetroy
+CONNECT root@192.168.0.1:22
 
 UPLOAD script1.py script2.js ./server
 
