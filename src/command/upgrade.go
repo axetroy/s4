@@ -116,6 +116,8 @@ func Upgrade() error {
 		return err
 	}
 
+	defer os.RemoveAll(tempDir)
+
 	fileName := path.Join(tempDir, response.TagName+"_"+currentAsset.Name)
 
 	if err := DownloadFile(fileName, currentAsset.BrowserDownloadUrl); err != nil {
