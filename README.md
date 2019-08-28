@@ -29,6 +29,14 @@ step 2: run the following command
 
 ```bash
 > s4
+[Step 1]: CONNECT root@192.168.0.1:22
+? Please type remote server's password **********
+[Step 2]: RUN ls -lh
+total 20K
+drwxr-xr-x  4 root root 4.0K Mar 15 10:10 test1
+drwxr-xr-x  2 root root 4.0K Sep 23  2018 test2
+drwxr-xr-x  6 root root 4.0K Sep 23  2018 test3
+drwxr-xr-x  4 root root 4.0K Aug 27 16:25 test4
 ```
 
 for more detail about command. print `s4 --help`
