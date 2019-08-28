@@ -18,11 +18,11 @@ func TestGenerateAST(t *testing.T) {
 		{
 			name: "basic",
 			args: args{
-				input: "HOST 192.168.0.1",
+				input: "RUN 192.168.0.1",
 			},
 			want: []Token{
 				{
-					Key:   "HOST",
+					Key:   "RUN",
 					value: []string{"192.168.0.1"},
 				},
 			},
@@ -30,11 +30,11 @@ func TestGenerateAST(t *testing.T) {
 		{
 			name: "basic with multiple blank",
 			args: args{
-				input: "HOST     192.168.0.1",
+				input: "RUN     192.168.0.1",
 			},
 			want: []Token{
 				{
-					Key:   "HOST",
+					Key:   "RUN",
 					value: []string{"192.168.0.1"},
 				},
 			},
@@ -43,11 +43,11 @@ func TestGenerateAST(t *testing.T) {
 			name: "basic with comment single line",
 			args: args{
 				input: `# server host address
-HOST     192.168.0.1`,
+RUN     192.168.0.1`,
 			},
 			want: []Token{
 				{
-					Key:   "HOST",
+					Key:   "RUN",
 					value: []string{"192.168.0.1"},
 				},
 			},
@@ -55,11 +55,11 @@ HOST     192.168.0.1`,
 		{
 			name: "basic with tail comment",
 			args: args{
-				input: `HOST 192.168.0.1 # set your server address`,
+				input: `RUN 192.168.0.1 # set your server address`,
 			},
 			want: []Token{
 				{
-					Key:   "HOST",
+					Key:   "RUN",
 					value: []string{"192.168.0.1"},
 				},
 			},
@@ -75,25 +75,19 @@ HOST     192.168.0.1`,
 		{
 			name: "multiple field",
 			args: args{
-				input: `HOST 192.168.0.1
-PORT 22
-
-USERNAME axetroy
+				input: `CONNECT axetroy@192.168.0.1:22
+RUN ls -lh
 
 `,
 			},
 			want: []Token{
 				{
-					Key:   "HOST",
-					value: []string{"192.168.0.1"},
+					Key:   "CONNECT",
+					value: []string{"axetroy@192.168.0.1:22"},
 				},
 				{
-					Key:   "PORT",
-					value: []string{"22"},
-				},
-				{
-					Key:   "USERNAME",
-					value: []string{"axetroy"},
+					Key:   "RUN",
+					value: []string{"ls", "-lh"},
 				},
 			},
 		},
@@ -139,7 +133,7 @@ USERNAME axetroy
 		{
 			name: "Empty value",
 			args: args{
-				input: "HOST",
+				input: "CONNECT",
 			},
 			want: []Token{
 			},

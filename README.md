@@ -45,9 +45,7 @@ for more detail about command. print `s4 --help`
 
 | Syntax   | Description                                              | Multiple | Example                               |
 | -------- | -------------------------------------------------------- | -------- | ------------------------------------- |
-| HOST     | remote SSH server address                                | ✖️       | HOST 192.168.0.1                      |
-| PORT     | remote SSH server port                                   | ✖️       | PORT 2022                             |
-| USERNAME | remote SSH server username                               | ✖️       | USERNAME axetroy                      |
+| CONNECT  | connect to remote SSH server                             | ✖️       | CONNECT root@192.168.0.1:22           |
 | ENV      | set environmental variable for `RUN` command             | ☑️       | ENV PRIVATE_KEY = 123                 |
 | CD       | change current working directory of remote server        | ☑️       | CD /home/axetroy                      |
 | UPLOAD   | upload local files to remote server                      | ☑️       | UPLOAD start.py ./server              |

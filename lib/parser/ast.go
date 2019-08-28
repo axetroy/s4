@@ -15,7 +15,7 @@ type Token struct {
 
 var (
 	CommentIdentifier = "#"
-	ValidKeywordReg   = regexp.MustCompile("HOST|PORT|USERNAME|ENV|CD|UPLOAD|DOWNLOAD|COPY|MOVE|DELETE|RUN|CMD|BASH")
+	ValidKeywordReg   = regexp.MustCompile("CONNECT|ENV|CD|UPLOAD|DOWNLOAD|COPY|MOVE|DELETE|RUN|CMD|BASH")
 	KeywordRed        = regexp.MustCompile("[A-Z]")
 	EmptyStrReg       = regexp.MustCompile("\\s")
 	LineWrapReg       = regexp.MustCompile("\\\n")
@@ -151,23 +151,6 @@ func GenerateAST(input string) ([]Token, error) {
 			valueLength := len(value)
 
 			switch keyword {
-			case "HOST":
-				if valueLength != 1 {
-					return tokens, errors.New(fmt.Sprintf("`HOST` only accepts one string but got `%s`", valueStr))
-				}
-				break
-			case "PORT":
-				if regexp.MustCompile("\\d+").MatchString(valueStr) == false {
-					return tokens, errors.New(fmt.Sprintf("`PORT` only accepts one integers but received `%s`", valueStr))
-				}
-				break
-
-			case "USERNAME":
-				if valueLength != 1 {
-					return tokens, errors.New(fmt.Sprintf("`USERNAME` only accepts one string but got `%s`", valueStr))
-				}
-				break
-
 			case "ENV":
 				if regexp.MustCompile("\\w+\\s?=\\s?\\w+").MatchString(valueStr) == false {
 					return tokens, errors.New(fmt.Sprintf("`ENV` need to match `KEY = VALUE` format but got `%s`", valueStr))
@@ -211,7 +194,7 @@ func GenerateAST(input string) ([]Token, error) {
 			case "RUN":
 				fallthrough
 			case "BASH":
-				if valueLength < 2 {
+				if valueLength < 1 {
 					return tokens, errors.New(fmt.Sprintf("`%s` accepts at least one parameter but got `%s`", keyword, valueStr))
 				}
 

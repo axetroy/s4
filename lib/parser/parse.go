@@ -45,14 +45,16 @@ func Parse(content []byte) (c *Config, err error) {
 	for _, token := range tokens {
 		value := strings.Join(token.value, " ")
 		switch token.Key {
-		case "HOST":
-			c.Host = value
-			break
-		case "PORT":
-			c.Port = value
-			break
-		case "USERNAME":
-			c.Username = value
+		case "CONNECT":
+			addr, err := ParseAddress(value)
+
+			if err != nil {
+				return nil, err
+			}
+
+			c.Host = addr.Host
+			c.Port = addr.Port
+			c.Username = addr.Username
 			break
 		case "ENV":
 			envKey := token.value[0]

@@ -20,9 +20,7 @@ func TestParse(t *testing.T) {
 			args: args{
 				content: []byte(`
 # run this config file with [s4]
-HOST 192.168.0.1
-PORT 22 # remote ssh server port
-USERNAME axetroy
+CONNECT axetroy@192.168.0.1:22
 
 ENV PRIVATE_KEY = 123
 ENV TOKEN = xxxx

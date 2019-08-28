@@ -45,12 +45,12 @@ REPORT BUGS: https://github.com/axetroy/s4/issues
 
 		r, err := runner.NewRunner(configFile)
 
-		if password != "" {
-			r.Config.Password = password
-		}
-
 		if err != nil {
 			return err
+		}
+
+		if password != "" {
+			r.Config.Password = password
 		}
 
 		if err := r.Run(); err != nil {
