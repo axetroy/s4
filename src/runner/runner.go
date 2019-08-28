@@ -1,9 +1,11 @@
-package lib
+package runner
 
 import (
 	"errors"
 	"fmt"
 	"github.com/AlecAivazis/survey"
+	"github.com/axetroy/s4/src/configuration"
+	"github.com/axetroy/s4/src/ssh"
 	"github.com/fatih/color"
 	"os"
 	"os/exec"
@@ -12,7 +14,7 @@ import (
 )
 
 type Runner struct {
-	Config *Config
+	Config *configuration.Configuration
 }
 
 func NewRunner(configFilepath string) (*Runner, error) {
@@ -26,7 +28,7 @@ func NewRunner(configFilepath string) (*Runner, error) {
 		}
 	}
 
-	config, err := ParseFile(configFilepath)
+	config, err := configuration.ParseFile(configFilepath)
 
 	if err != nil {
 		return nil, err
@@ -38,6 +40,12 @@ func NewRunner(configFilepath string) (*Runner, error) {
 }
 
 func (r *Runner) Run() error {
+	client := ssh.NewSSH(r.Config)
+
+	step := 1
+
+	fmt.Printf("[Step %v]: CONNECT %s\n", step, color.GreenString(fmt.Sprintf("%s@%s:%s", r.Config.Username, r.Config.Host, r.Config.Port)))
+
 	if r.Config.Password == "" {
 		// ask password for remote server
 		password := ""
@@ -52,19 +60,19 @@ func (r *Runner) Run() error {
 		r.Config.Password = password
 	}
 
-	client := NewSSH(r.Config)
+	if err := client.Connect(); err != nil {
+		return err
+	}
+
+	step++
+
+	defer client.Disconnect()
 
 	localCwd, err := os.Getwd()
 
 	if err != nil {
 		return err
 	}
-
-	if err := client.Connect(); err != nil {
-		return err
-	}
-
-	defer client.Disconnect()
 
 	remoteCwd, err := client.Pwd()
 
@@ -74,8 +82,6 @@ func (r *Runner) Run() error {
 
 	r.Config.CWD = remoteCwd
 
-	step := 1
-
 	for _, action := range r.Config.Actions {
 		argument := strings.Join(action.Arguments, " ")
 
@@ -84,7 +90,7 @@ func (r *Runner) Run() error {
 			dir := argument
 			r.Config.CWD = dir
 			fmt.Printf("[Step %v]: CD %s\n", step, color.GreenString(dir))
-			step += 1
+			step++
 			break
 		case "BASH":
 			commandWithColor := color.YellowString(fmt.Sprintf("%v", action.Arguments))
@@ -118,7 +124,7 @@ func (r *Runner) Run() error {
 				return errors.New(fmt.Sprintf("run command '%s' fail.", action.Arguments))
 			}
 
-			step += 1
+			step++
 
 			break
 		case "CMD":
@@ -146,10 +152,10 @@ func (r *Runner) Run() error {
 				return errors.New(fmt.Sprintf("run command '%s' fail.", action.Arguments))
 			}
 
-			step += 1
+			step++
 			break
 		case "RUN":
-			commandWithColor := color.YellowString(fmt.Sprintf("%v", action.Arguments))
+			commandWithColor := color.YellowString(fmt.Sprintf("%v", argument))
 
 			fmt.Printf("[Step %v]: RUN %s\n", step, commandWithColor)
 
@@ -157,17 +163,11 @@ func (r *Runner) Run() error {
 				return err
 			}
 
-			step += 1
+			step++
 			break
 		case "MOVE":
-			args := strings.Split(argument, " ")
-
-			if len(args) != 2 {
-				return errors.New(fmt.Sprintf("move require source and destination but got `%s`", args))
-			}
-
-			sourceFilepath := strings.Trim(args[0], " ")
-			destinationFilepath := strings.Trim(args[1], " ")
+			sourceFilepath := action.Arguments[0]
+			destinationFilepath := action.Arguments[1]
 
 			if path.IsAbs(sourceFilepath) == false {
 				sourceFilepath = path.Join(r.Config.CWD, sourceFilepath)
@@ -183,18 +183,12 @@ func (r *Runner) Run() error {
 				return err
 			}
 
-			step += 1
+			step++
 
 			break
 		case "COPY":
-			args := action.Arguments
-
-			if len(args) != 2 {
-				return errors.New(fmt.Sprintf("copy require source and destination but got `%s`", args))
-			}
-
-			sourceFilepath := strings.Trim(args[0], " ")
-			destinationFilepath := strings.Trim(args[1], " ")
+			sourceFilepath := action.Arguments[0]
+			destinationFilepath := action.Arguments[1]
 
 			if path.IsAbs(sourceFilepath) == false {
 				sourceFilepath = path.Join(r.Config.CWD, sourceFilepath)
@@ -210,7 +204,7 @@ func (r *Runner) Run() error {
 				return err
 			}
 
-			step += 1
+			step++
 
 			break
 		case "DELETE":
@@ -232,54 +226,48 @@ func (r *Runner) Run() error {
 				return err
 			}
 
-			step += 1
+			step++
 
 			break
 		case "UPLOAD":
-			f, err := FileParser(argument)
+			sourceFiles := action.Arguments[:len(action.Arguments)-1]
+			destinationDir := action.Arguments[len(action.Arguments)-1]
 
-			if err != nil {
-				return err
-			}
-
-			if path.IsAbs(f.Destination) == false {
+			if path.IsAbs(destinationDir) == false {
 				if r.Config.CWD != "" {
-					f.Destination = path.Join(r.Config.CWD, f.Destination)
+					destinationDir = path.Join(r.Config.CWD, destinationDir)
 				}
 			}
 
-			fmt.Printf("[Step %v]: UPLOAD local:%s to remote:%s\n", step, color.YellowString(strings.Join(f.Source, ", ")), color.GreenString(f.Destination))
+			fmt.Printf("[Step %v]: UPLOAD local:%s to remote:%s\n", step, color.YellowString(strings.Join(action.Arguments, ", ")), color.GreenString(destinationDir))
 
-			for _, filePath := range f.Source {
+			for _, filePath := range sourceFiles {
 
 				if path.IsAbs(filePath) == false {
 					filePath = path.Join(localCwd, filePath)
 				}
 
-				err := client.Upload(filePath, f.Destination)
+				err := client.Upload(filePath, destinationDir)
 
 				if err != nil {
 					return err
 				}
 			}
 
-			step += 1
+			step++
 
 			break
 		case "DOWNLOAD":
-			f, err := FileParser(argument)
+			sourceFiles := action.Arguments[:len(action.Arguments)-1]
+			destinationDir := action.Arguments[len(action.Arguments)-1]
 
-			if err != nil {
-				return err
+			if path.IsAbs(destinationDir) == false {
+				destinationDir = path.Join(localCwd, destinationDir)
 			}
 
-			if path.IsAbs(f.Destination) == false {
-				f.Destination = path.Join(localCwd, f.Destination)
-			}
+			fmt.Printf("[Step %v]: DOWNLOAD remote:%s to local:%s\n", step, color.YellowString(strings.Join(action.Arguments, ", ")), color.GreenString(destinationDir))
 
-			fmt.Printf("[Step %v]: DOWNLOAD remote:%s to local:%s\n", step, color.YellowString(strings.Join(f.Source, ", ")), color.GreenString(f.Destination))
-
-			for _, filePath := range f.Source {
+			for _, filePath := range sourceFiles {
 
 				if path.IsAbs(filePath) == false {
 					if r.Config.CWD != "" {
@@ -287,16 +275,14 @@ func (r *Runner) Run() error {
 					}
 				}
 
-				err := client.Download(filePath, f.Destination)
-
-				fmt.Println("download", filePath, "-->", f.Destination)
+				err := client.Download(filePath, destinationDir)
 
 				if err != nil {
 					return err
 				}
 			}
 
-			step += 1
+			step++
 
 			break
 		default:

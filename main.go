@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/axetroy/s4/lib"
+	"github.com/axetroy/s4/src/runner"
 	"github.com/urfave/cli"
 	"log"
 	"os"
@@ -12,7 +12,7 @@ func main() {
 
 	app.Name = "s4"
 	app.Usage = "Perform remote server tasks on local computer"
-	app.Version = "0.1.3"
+	app.Version = "0.2.0"
 	app.Author = "Axetroy"
 	app.Email = "axetroy.dev@gmail.com"
 
@@ -43,7 +43,7 @@ REPORT BUGS: https://github.com/axetroy/s4/issues
 		configFile := c.String("config")
 		password := c.String("password")
 
-		r, err := lib.NewRunner(configFile)
+		r, err := runner.NewRunner(configFile)
 
 		if err != nil {
 			return err
@@ -60,10 +60,7 @@ REPORT BUGS: https://github.com/axetroy/s4/issues
 		return nil
 	}
 
-	err := app.Run(os.Args)
-
-	if err != nil {
+	if err := app.Run(os.Args); err != nil {
 		log.Fatal(err)
 	}
-
 }

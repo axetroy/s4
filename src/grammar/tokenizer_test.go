@@ -1,19 +1,19 @@
-package lib_test
+package grammar_test
 
 import (
-	"github.com/axetroy/s4/lib"
+	"github.com/axetroy/s4/src/grammar"
 	"reflect"
 	"testing"
 )
 
-func TestGenerateAST(t *testing.T) {
+func TestTokenizer(t *testing.T) {
 	type args struct {
 		input string
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    []lib.Token
+		want    []grammar.Token
 		wantErr bool
 	}{
 		{
@@ -21,7 +21,7 @@ func TestGenerateAST(t *testing.T) {
 			args: args{
 				input: "RUN 192.168.0.1",
 			},
-			want: []lib.Token{
+			want: []grammar.Token{
 				{
 					Key:   "RUN",
 					Value: []string{"192.168.0.1"},
@@ -33,7 +33,7 @@ func TestGenerateAST(t *testing.T) {
 			args: args{
 				input: "RUN     192.168.0.1",
 			},
-			want: []lib.Token{
+			want: []grammar.Token{
 				{
 					Key:   "RUN",
 					Value: []string{"192.168.0.1"},
@@ -46,7 +46,7 @@ func TestGenerateAST(t *testing.T) {
 				input: `# server host address
 RUN     192.168.0.1`,
 			},
-			want: []lib.Token{
+			want: []grammar.Token{
 				{
 					Key:   "RUN",
 					Value: []string{"192.168.0.1"},
@@ -58,7 +58,7 @@ RUN     192.168.0.1`,
 			args: args{
 				input: `RUN 192.168.0.1 # set your server address`,
 			},
-			want: []lib.Token{
+			want: []grammar.Token{
 				{
 					Key:   "RUN",
 					Value: []string{"192.168.0.1"},
@@ -70,7 +70,7 @@ RUN     192.168.0.1`,
 			args: args{
 				input: `# HOST 192.168.0.1`,
 			},
-			want: []lib.Token{},
+			want: []grammar.Token{},
 		},
 		{
 			name: "multiple field",
@@ -80,7 +80,7 @@ RUN ls -lh
 
 `,
 			},
-			want: []lib.Token{
+			want: []grammar.Token{
 				{
 					Key:   "CONNECT",
 					Value: []string{"axetroy@192.168.0.1:22"},
@@ -96,7 +96,7 @@ RUN ls -lh
 			args: args{
 				input: `UPLOAD ./README.md ./start.py ./dist`,
 			},
-			want: []lib.Token{
+			want: []grammar.Token{
 				{
 					Key:   "UPLOAD",
 					Value: []string{"./README.md", "./start.py", "./dist"},
@@ -108,7 +108,7 @@ RUN ls -lh
 			args: args{
 				input: "INVALID KEYWORD",
 			},
-			want:    []lib.Token{},
+			want:    []grammar.Token{},
 			wantErr: true,
 		},
 		{
@@ -116,7 +116,7 @@ RUN ls -lh
 			args: args{
 				input: "# INVALID KEYWORD",
 			},
-			want:    []lib.Token{},
+			want:    []grammar.Token{},
 			wantErr: false,
 		},
 		{
@@ -124,7 +124,7 @@ RUN ls -lh
 			args: args{
 				input: "(abc)",
 			},
-			want:    []lib.Token{},
+			want:    []grammar.Token{},
 			wantErr: true,
 		},
 		{
@@ -132,7 +132,7 @@ RUN ls -lh
 			args: args{
 				input: "CONNECT",
 			},
-			want:    []lib.Token{},
+			want:    []grammar.Token{},
 			wantErr: true,
 		},
 		{
@@ -140,7 +140,7 @@ RUN ls -lh
 			args: args{
 				input: "ENV PRIVATE_KEY",
 			},
-			want:    []lib.Token{},
+			want:    []grammar.Token{},
 			wantErr: true,
 		},
 		{
@@ -148,7 +148,7 @@ RUN ls -lh
 			args: args{
 				input: "ENV PRIVATE_KEY = ",
 			},
-			want:    []lib.Token{},
+			want:    []grammar.Token{},
 			wantErr: true,
 		},
 		{
@@ -156,7 +156,7 @@ RUN ls -lh
 			args: args{
 				input: "ENV PRIVATE_KEY = xxx",
 			},
-			want: []lib.Token{
+			want: []grammar.Token{
 				{
 					Key:   "ENV",
 					Value: []string{"PRIVATE_KEY", "xxx"},
@@ -167,7 +167,7 @@ RUN ls -lh
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := lib.GenerateAST(tt.args.input)
+			got, err := grammar.Tokenizer(tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GenerateAST() error = %v, wantErr %v", err, tt.wantErr)
 				return

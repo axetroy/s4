@@ -1,7 +1,7 @@
-package lib_test
+package configuration_test
 
 import (
-	"github.com/axetroy/s4/lib"
+	"github.com/axetroy/s4/src/configuration"
 	"reflect"
 	"testing"
 )
@@ -13,7 +13,7 @@ func TestParse(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		wantC   *lib.Config
+		wantC   *configuration.Configuration
 		wantErr bool
 	}{
 		{
@@ -35,7 +35,7 @@ RUN ls -lh
 RUN echo "hello    world"
 `),
 			},
-			wantC: &lib.Config{
+			wantC: &configuration.Configuration{
 				Host:     "192.168.0.1",
 				Port:     "22",
 				Username: "axetroy",
@@ -44,7 +44,7 @@ RUN echo "hello    world"
 					"PRIVATE_KEY": "123",
 					"TOKEN":       "xxxx",
 				},
-				Actions: []lib.Action{
+				Actions: []configuration.Action{
 					{
 						Action:    "CD",
 						Arguments: []string{"/root"},
@@ -70,9 +70,9 @@ RUN echo "hello    world"
 			args: args{
 				content: []byte(`CMD ["ls", "-lh"]`),
 			},
-			wantC: &lib.Config{
+			wantC: &configuration.Configuration{
 				Env: map[string]string{},
-				Actions: []lib.Action{
+				Actions: []configuration.Action{
 					{
 						Action:    "CMD",
 						Arguments: []string{"ls", "-lh"},
@@ -83,7 +83,7 @@ RUN echo "hello    world"
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotC, err := lib.Parse(tt.args.content)
+			gotC, err := configuration.Parse(tt.args.content)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Parse() error = %v, wantErr %v", err, tt.wantErr)
 				return

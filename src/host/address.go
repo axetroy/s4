@@ -1,4 +1,4 @@
-package lib
+package host
 
 import (
 	"fmt"
@@ -16,7 +16,7 @@ var (
 	AddressReg = regexp.MustCompile("^([\\w-]+)@([\\w\\.-]+):(\\d+)$")
 )
 
-func ParseAddress(address string) (Address, error) {
+func Parse(address string) (Address, error) {
 	addr := Address{}
 
 	matchers := AddressReg.FindAllStringSubmatch(address, -1)

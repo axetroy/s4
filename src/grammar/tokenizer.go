@@ -1,4 +1,4 @@
-package lib
+package grammar
 
 import (
 	"encoding/json"
@@ -21,7 +21,7 @@ var (
 	LineWrapReg       = regexp.MustCompile("\\\n")
 )
 
-func GenerateAST(input string) ([]Token, error) {
+func Tokenizer(input string) ([]Token, error) {
 	currentIndex := 0
 
 	tokens := make([]Token, 0)

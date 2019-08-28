@@ -1,6 +1,8 @@
-package lib
+package configuration
 
 import (
+	"github.com/axetroy/s4/src/grammar"
+	"github.com/axetroy/s4/src/host"
 	"io/ioutil"
 	"strings"
 )
@@ -10,7 +12,7 @@ type Action struct {
 	Arguments []string
 }
 
-type Config struct {
+type Configuration struct {
 	Host     string
 	Port     string
 	CWD      string
@@ -20,7 +22,7 @@ type Config struct {
 	Actions  []Action
 }
 
-func ParseFile(configFilepath string) (*Config, error) {
+func ParseFile(configFilepath string) (*Configuration, error) {
 	var content []byte
 	content, err := ioutil.ReadFile(configFilepath)
 
@@ -31,12 +33,12 @@ func ParseFile(configFilepath string) (*Config, error) {
 	return Parse(content)
 }
 
-func Parse(content []byte) (c *Config, err error) {
-	c = &Config{}
+func Parse(content []byte) (c *Configuration, err error) {
+	c = &Configuration{}
 
 	c.Env = map[string]string{}
 
-	tokens, err := GenerateAST(string(content))
+	tokens, err := grammar.Tokenizer(string(content))
 
 	if err != nil {
 		return nil, err
@@ -46,7 +48,7 @@ func Parse(content []byte) (c *Config, err error) {
 		value := strings.Join(token.Value, " ")
 		switch token.Key {
 		case "CONNECT":
-			addr, err := ParseAddress(value)
+			addr, err := host.Parse(value)
 
 			if err != nil {
 				return nil, err
