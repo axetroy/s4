@@ -71,6 +71,12 @@ eg, the executable file is in the `~/bin` directory.
 export PATH="$PATH:~/bin"
 ```
 
+finally, try it out.
+
+```bash
+s4 --help
+```
+
 ### Upgrade
 
 You can re-download the executable and overwrite the original file.
