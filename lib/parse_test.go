@@ -1,6 +1,7 @@
-package parser
+package lib_test
 
 import (
+	"github.com/axetroy/s4/lib"
 	"reflect"
 	"testing"
 )
@@ -12,7 +13,7 @@ func TestParse(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		wantC   *Config
+		wantC   *lib.Config
 		wantErr bool
 	}{
 		{
@@ -34,7 +35,7 @@ RUN ls -lh
 RUN echo "hello    world"
 `),
 			},
-			wantC: &Config{
+			wantC: &lib.Config{
 				Host:     "192.168.0.1",
 				Port:     "22",
 				Username: "axetroy",
@@ -43,7 +44,7 @@ RUN echo "hello    world"
 					"PRIVATE_KEY": "123",
 					"TOKEN":       "xxxx",
 				},
-				Actions: []Action{
+				Actions: []lib.Action{
 					{
 						Action:    "CD",
 						Arguments: []string{"/root"},
@@ -69,9 +70,9 @@ RUN echo "hello    world"
 			args: args{
 				content: []byte(`CMD ["ls", "-lh"]`),
 			},
-			wantC: &Config{
+			wantC: &lib.Config{
 				Env: map[string]string{},
-				Actions: []Action{
+				Actions: []lib.Action{
 					{
 						Action:    "CMD",
 						Arguments: []string{"ls", "-lh"},
@@ -82,7 +83,7 @@ RUN echo "hello    world"
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotC, err := Parse(tt.args.content)
+			gotC, err := lib.Parse(tt.args.content)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Parse() error = %v, wantErr %v", err, tt.wantErr)
 				return

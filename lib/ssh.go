@@ -1,9 +1,8 @@
-package runner
+package lib
 
 import (
 	"bufio"
 	"fmt"
-	"github.com/axetroy/s4/lib/parser"
 	"github.com/cheggaaa/pb/v3"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
@@ -16,12 +15,12 @@ import (
 )
 
 type Client struct {
-	config     *parser.Config
+	config     *Config
 	sshClient  *ssh.Client
 	sftpClient *sftp.Client
 }
 
-func NewSSH(c *parser.Config) *Client {
+func NewSSH(c *Config) *Client {
 	return &Client{
 		config:     c,
 		sshClient:  nil,

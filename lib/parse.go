@@ -1,4 +1,4 @@
-package parser
+package lib
 
 import (
 	"io/ioutil"
@@ -43,7 +43,7 @@ func Parse(content []byte) (c *Config, err error) {
 	}
 
 	for _, token := range tokens {
-		value := strings.Join(token.value, " ")
+		value := strings.Join(token.Value, " ")
 		switch token.Key {
 		case "CONNECT":
 			addr, err := ParseAddress(value)
@@ -57,8 +57,8 @@ func Parse(content []byte) (c *Config, err error) {
 			c.Username = addr.Username
 			break
 		case "ENV":
-			envKey := token.value[0]
-			envValue := token.value[1]
+			envKey := token.Value[0]
+			envValue := token.Value[1]
 
 			c.Env[envKey] = envValue
 			break
@@ -75,7 +75,7 @@ func Parse(content []byte) (c *Config, err error) {
 		case "DOWNLOAD":
 			c.Actions = append(c.Actions, Action{
 				Action:    token.Key,
-				Arguments: token.value,
+				Arguments: token.Value,
 			})
 			break
 		case "BASH":
@@ -85,7 +85,7 @@ func Parse(content []byte) (c *Config, err error) {
 		case "RUN":
 			c.Actions = append(c.Actions, Action{
 				Action:    token.Key,
-				Arguments: token.value,
+				Arguments: token.Value,
 			})
 			break
 		}

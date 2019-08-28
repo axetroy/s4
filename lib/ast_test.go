@@ -1,6 +1,7 @@
-package parser
+package lib_test
 
 import (
+	"github.com/axetroy/s4/lib"
 	"reflect"
 	"testing"
 )
@@ -12,7 +13,7 @@ func TestGenerateAST(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    []Token
+		want    []lib.Token
 		wantErr bool
 	}{
 		{
@@ -20,10 +21,10 @@ func TestGenerateAST(t *testing.T) {
 			args: args{
 				input: "RUN 192.168.0.1",
 			},
-			want: []Token{
+			want: []lib.Token{
 				{
 					Key:   "RUN",
-					value: []string{"192.168.0.1"},
+					Value: []string{"192.168.0.1"},
 				},
 			},
 		},
@@ -32,10 +33,10 @@ func TestGenerateAST(t *testing.T) {
 			args: args{
 				input: "RUN     192.168.0.1",
 			},
-			want: []Token{
+			want: []lib.Token{
 				{
 					Key:   "RUN",
-					value: []string{"192.168.0.1"},
+					Value: []string{"192.168.0.1"},
 				},
 			},
 		},
@@ -45,10 +46,10 @@ func TestGenerateAST(t *testing.T) {
 				input: `# server host address
 RUN     192.168.0.1`,
 			},
-			want: []Token{
+			want: []lib.Token{
 				{
 					Key:   "RUN",
-					value: []string{"192.168.0.1"},
+					Value: []string{"192.168.0.1"},
 				},
 			},
 		},
@@ -57,10 +58,10 @@ RUN     192.168.0.1`,
 			args: args{
 				input: `RUN 192.168.0.1 # set your server address`,
 			},
-			want: []Token{
+			want: []lib.Token{
 				{
 					Key:   "RUN",
-					value: []string{"192.168.0.1"},
+					Value: []string{"192.168.0.1"},
 				},
 			},
 		},
@@ -69,8 +70,7 @@ RUN     192.168.0.1`,
 			args: args{
 				input: `# HOST 192.168.0.1`,
 			},
-			want: []Token{
-			},
+			want: []lib.Token{},
 		},
 		{
 			name: "multiple field",
@@ -80,14 +80,14 @@ RUN ls -lh
 
 `,
 			},
-			want: []Token{
+			want: []lib.Token{
 				{
 					Key:   "CONNECT",
-					value: []string{"axetroy@192.168.0.1:22"},
+					Value: []string{"axetroy@192.168.0.1:22"},
 				},
 				{
 					Key:   "RUN",
-					value: []string{"ls", "-lh"},
+					Value: []string{"ls", "-lh"},
 				},
 			},
 		},
@@ -96,10 +96,10 @@ RUN ls -lh
 			args: args{
 				input: `UPLOAD ./README.md ./start.py ./dist`,
 			},
-			want: []Token{
+			want: []lib.Token{
 				{
 					Key:   "UPLOAD",
-					value: []string{"./README.md", "./start.py", "./dist"},
+					Value: []string{"./README.md", "./start.py", "./dist"},
 				},
 			},
 		},
@@ -108,8 +108,7 @@ RUN ls -lh
 			args: args{
 				input: "INVALID KEYWORD",
 			},
-			want: []Token{
-			},
+			want:    []lib.Token{},
 			wantErr: true,
 		},
 		{
@@ -117,8 +116,7 @@ RUN ls -lh
 			args: args{
 				input: "# INVALID KEYWORD",
 			},
-			want: []Token{
-			},
+			want:    []lib.Token{},
 			wantErr: false,
 		},
 		{
@@ -126,8 +124,7 @@ RUN ls -lh
 			args: args{
 				input: "(abc)",
 			},
-			want: []Token{
-			},
+			want:    []lib.Token{},
 			wantErr: true,
 		},
 		{
@@ -135,8 +132,7 @@ RUN ls -lh
 			args: args{
 				input: "CONNECT",
 			},
-			want: []Token{
-			},
+			want:    []lib.Token{},
 			wantErr: true,
 		},
 		{
@@ -144,8 +140,7 @@ RUN ls -lh
 			args: args{
 				input: "ENV PRIVATE_KEY",
 			},
-			want: []Token{
-			},
+			want:    []lib.Token{},
 			wantErr: true,
 		},
 		{
@@ -153,8 +148,7 @@ RUN ls -lh
 			args: args{
 				input: "ENV PRIVATE_KEY = ",
 			},
-			want: []Token{
-			},
+			want:    []lib.Token{},
 			wantErr: true,
 		},
 		{
@@ -162,10 +156,10 @@ RUN ls -lh
 			args: args{
 				input: "ENV PRIVATE_KEY = xxx",
 			},
-			want: []Token{
+			want: []lib.Token{
 				{
 					Key:   "ENV",
-					value: []string{"PRIVATE_KEY", "xxx"},
+					Value: []string{"PRIVATE_KEY", "xxx"},
 				},
 			},
 			wantErr: false,
@@ -173,7 +167,7 @@ RUN ls -lh
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GenerateAST(tt.args.input)
+			got, err := lib.GenerateAST(tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GenerateAST() error = %v, wantErr %v", err, tt.wantErr)
 				return

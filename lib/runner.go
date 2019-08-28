@@ -1,10 +1,9 @@
-package runner
+package lib
 
 import (
 	"errors"
 	"fmt"
 	"github.com/AlecAivazis/survey"
-	"github.com/axetroy/s4/lib/parser"
 	"github.com/fatih/color"
 	"os"
 	"os/exec"
@@ -13,7 +12,7 @@ import (
 )
 
 type Runner struct {
-	Config *parser.Config
+	Config *Config
 }
 
 func NewRunner(configFilepath string) (*Runner, error) {
@@ -27,7 +26,7 @@ func NewRunner(configFilepath string) (*Runner, error) {
 		}
 	}
 
-	config, err := parser.ParseFile(configFilepath)
+	config, err := ParseFile(configFilepath)
 
 	if err != nil {
 		return nil, err
@@ -237,7 +236,7 @@ func (r *Runner) Run() error {
 
 			break
 		case "UPLOAD":
-			f, err := parser.FileParser(argument)
+			f, err := FileParser(argument)
 
 			if err != nil {
 				return err
@@ -268,7 +267,7 @@ func (r *Runner) Run() error {
 
 			break
 		case "DOWNLOAD":
-			f, err := parser.FileParser(argument)
+			f, err := FileParser(argument)
 
 			if err != nil {
 				return err

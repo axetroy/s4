@@ -1,6 +1,7 @@
-package parser
+package lib_test
 
 import (
+	"github.com/axetroy/s4/lib"
 	"reflect"
 	"testing"
 )
@@ -12,7 +13,7 @@ func TestParseAddress(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    Address
+		want    lib.Address
 		wantErr bool
 	}{
 		{
@@ -20,7 +21,7 @@ func TestParseAddress(t *testing.T) {
 			args: args{
 				address: "root@192.168.0.1:22",
 			},
-			want: Address{
+			want: lib.Address{
 				Host:     "192.168.0.1",
 				Port:     "22",
 				Username: "root",
@@ -50,7 +51,7 @@ func TestParseAddress(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseAddress(tt.args.address)
+			got, err := lib.ParseAddress(tt.args.address)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseAddress() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/axetroy/s4/lib/runner"
+	"github.com/axetroy/s4/lib"
 	"github.com/urfave/cli"
 	"log"
 	"os"
@@ -43,7 +43,7 @@ REPORT BUGS: https://github.com/axetroy/s4/issues
 		configFile := c.String("config")
 		password := c.String("password")
 
-		r, err := runner.NewRunner(configFile)
+		r, err := lib.NewRunner(configFile)
 
 		if err != nil {
 			return err

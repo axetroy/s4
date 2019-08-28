@@ -1,4 +1,4 @@
-package parser
+package lib
 
 import (
 	"encoding/json"
@@ -10,7 +10,7 @@ import (
 
 type Token struct {
 	Key   string
-	value []string
+	Value []string
 }
 
 var (
@@ -213,7 +213,7 @@ func GenerateAST(input string) ([]Token, error) {
 
 			tokens = append(tokens, Token{
 				Key:   keyword,
-				value: value,
+				Value: value,
 			})
 
 			continue

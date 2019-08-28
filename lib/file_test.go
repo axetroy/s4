@@ -1,6 +1,7 @@
-package parser
+package lib_test
 
 import (
+	"github.com/axetroy/s4/lib"
 	"reflect"
 	"testing"
 )
@@ -12,7 +13,7 @@ func TestFileParser(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *Files
+		want    *lib.Files
 		wantErr bool
 	}{
 		{
@@ -20,7 +21,7 @@ func TestFileParser(t *testing.T) {
 			args: args{
 				source: `./start.py ./server`,
 			},
-			want: &Files{
+			want: &lib.Files{
 				Source:      []string{"./start.py"},
 				Destination: "./server",
 			},
@@ -30,7 +31,7 @@ func TestFileParser(t *testing.T) {
 			args: args{
 				source: `./start.py ./stop.py ./server`,
 			},
-			want: &Files{
+			want: &lib.Files{
 				Source:      []string{"./start.py", "./stop.py"},
 				Destination: "./server",
 			},
@@ -40,7 +41,7 @@ func TestFileParser(t *testing.T) {
 			args: args{
 				source: `./start.py`,
 			},
-			want: &Files{
+			want: &lib.Files{
 				Source:      []string{},
 				Destination: "./start.py",
 			},
@@ -49,7 +50,7 @@ func TestFileParser(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := FileParser(tt.args.source)
+			got, err := lib.FileParser(tt.args.source)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("FileParser() error = %v, wantErr %v", err, tt.wantErr)
 				return
