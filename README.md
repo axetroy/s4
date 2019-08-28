@@ -61,13 +61,10 @@ download from the [release page](https://github.com/axetroy/s4/releases)
 > make build
 > ls -lh ./bin
 
-total 85976
--rwxr-xr-x  1 axetroy  staff   7.1M Aug 26 20:19 linux_x64_s4
--rwxr-xr-x  1 axetroy  staff   6.4M Aug 26 20:19 linux_x86_s4
--rwxr-xr-x  1 axetroy  staff   7.0M Aug 26 20:19 osx_x64_s4
--rwxr-xr-x  1 axetroy  staff   6.3M Aug 26 20:19 osx_x86_s4
--rwxr-xr-x  1 axetroy  staff   6.9M Aug 26 20:19 windows_x64_s4.exe
--rwxr-xr-x  1 axetroy  staff   6.2M Aug 26 20:19 windows_x86_s4.exe
+total 24624
+-rw-r--r--  1 axetroy  staff   3.9M Aug 28 14:11 s4_linux_x64.tar.gz
+-rw-r--r--@ 1 axetroy  staff   3.8M Aug 28 14:11 s4_osx_x64.tar.gz
+-rw-r--r--  1 axetroy  staff   3.8M Aug 28 14:11 s4_win_x64.tar.gz
 ```
 
 ### Test
