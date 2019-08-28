@@ -10,6 +10,7 @@ Perform remote server tasks on local computer
 
 Features:
 
+- [x] Cross platform support
 - [x] Declarative workflow
 - [x] Upload local files to remote
 - [x] Download remote files to local
@@ -57,9 +58,28 @@ for more detail about command. print `s4 --help`
 | CMD      | run command in local server                              | ☑️       | CMD ["cat", "README.md"]              |
 | BASH     | run bash script in local server                          | ☑️       | BASH cat package.json \| grep version |
 
-### Download
+### Installation
 
-download from the [release page](https://github.com/axetroy/s4/releases)
+Download the executable file for your platform at [release page](https://github.com/axetroy/s4/releases)
+
+Then set the environment variable.
+
+eg, the executable file is in the `~/bin` directory.
+
+```bash
+# ~/.bash_profile
+export PATH="$PATH:~/bin"
+```
+
+### Upgrade
+
+You can re-download the executable and overwrite the original file.
+
+or type the following command to upgrade to the latest version.
+
+```bash
+> s4 upgrade
+```
 
 ### Build from source code
 
@@ -80,6 +100,21 @@ total 24624
 ```bash
 make test
 ```
+
+### Why?
+
+> Why do I need such a tool?
+> What is its use?
+
+In development, we need to operate remote servers locally, such as deploying services, restarting services, upload files, etc.
+
+We can of course do this with a bash script.
+
+But that is quite cumbersome.
+
+So, I wrote this tool to release my hands.
+
+I hope this helps you.
 
 ### License
 

@@ -28,6 +28,8 @@ func NewRunner(configFilepath string) (*Runner, error) {
 		}
 	}
 
+	fmt.Printf("Load the s4 file `%s`\n", color.GreenString(configFilepath))
+
 	config, err := configuration.ParseFile(configFilepath)
 
 	if err != nil {
@@ -94,7 +96,7 @@ func (r *Runner) Run() error {
 			break
 		case "BASH":
 			commandWithColor := color.YellowString(fmt.Sprintf("%v", action.Arguments))
-			fmt.Printf("[Step %v]: CMD %s\n", step, commandWithColor)
+			fmt.Printf("[Step %v]: BASH %s\n", step, commandWithColor)
 
 			bashPath := os.Getenv("SHELL")
 

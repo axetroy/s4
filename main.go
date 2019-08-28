@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/axetroy/s4/src/runner"
+	"github.com/axetroy/s4/src/command"
 	"github.com/urfave/cli"
 	"log"
 	"os"
@@ -19,12 +19,24 @@ func main() {
 	cli.AppHelpTemplate = `NAME:
    {{.Name}} - {{.Usage}}
 USAGE:
-   {{.HelpName}} {{if .VisibleFlags}}[global options]{{end}}
+   {{.HelpName}} {{if .VisibleFlags}}[global options]{{end}}{{if .Commands}} command [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}
+   {{if len .Authors}}
+AUTHOR:
+   {{range .Authors}}{{ . }}{{end}}
+   {{end}}{{if .Commands}}
+COMMANDS:
+{{range .Commands}}{{if not .HideHelp}}   {{join .Names ", "}}{{ "\t"}}{{.Usage}}{{ "\n" }}{{end}}{{end}}{{end}}{{if .VisibleFlags}}
 GLOBAL OPTIONS:
    {{range .VisibleFlags}}{{.}}
+   {{end}}{{end}}{{if .Copyright }}
+COPYRIGHT:
+   {{.Copyright}}
+   {{end}}{{if .Version}}
+VERSION:
+   {{.Version}}
    {{end}}
-WEBSITE: https://github.com/axetroy/s4
-REPORT BUGS: https://github.com/axetroy/s4/issues
+SOURCE CODE:
+	https://github.com/axetroy/s4
 `
 
 	app.Flags = []cli.Flag{
@@ -39,25 +51,27 @@ REPORT BUGS: https://github.com/axetroy/s4/issues
 		},
 	}
 
+	app.Commands = []cli.Command{
+		{
+			Name:  "version",
+			Usage: "print current s4 version",
+			Action: func(c *cli.Context) error {
+				return command.Version(app.Version)
+			},
+		},
+		{
+			Name:  "upgrade",
+			Usage: "upgrade s4 version to latest",
+			Action: func(c *cli.Context) error {
+				return command.Upgrade()
+			},
+		},
+	}
+
 	app.Action = func(c *cli.Context) error {
 		configFile := c.String("config")
 		password := c.String("password")
-
-		r, err := runner.NewRunner(configFile)
-
-		if err != nil {
-			return err
-		}
-
-		if password != "" {
-			r.Config.Password = password
-		}
-
-		if err := r.Run(); err != nil {
-			return err
-		}
-
-		return nil
+		return command.Detault(configFile, password)
 	}
 
 	if err := app.Run(os.Args); err != nil {
