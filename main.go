@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/axetroy/sshunter/lib/runner"
+	"github.com/axetroy/s4/lib/runner"
 	"github.com/urfave/cli"
 	"log"
 	"os"

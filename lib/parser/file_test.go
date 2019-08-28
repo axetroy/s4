@@ -40,8 +40,11 @@ func TestFileParser(t *testing.T) {
 			args: args{
 				source: `./start.py`,
 			},
-			want:    nil,
-			wantErr: true,
+			want: &Files{
+				Source:      []string{},
+				Destination: "./start.py",
+			},
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {

@@ -5,46 +5,6 @@ import (
 	"testing"
 )
 
-func TestRemoveComment(t *testing.T) {
-	type args struct {
-		value string
-	}
-	tests := []struct {
-		name string
-		args args
-		want string
-	}{
-		{
-			name: "basic",
-			want: "",
-			args: args{
-				value: `# hello world`,
-			},
-		},
-		{
-			name: "basic",
-			want: "PORT 22",
-			args: args{
-				value: `PORT 22 # remote server port`,
-			},
-		},
-		{
-			name: "basic",
-			want: "PORT 22",
-			args: args{
-				value: `PORT 22 # remote server port`,
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := RemoveComment(tt.args.value); got != tt.want {
-				t.Errorf("RemoveComment() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestParse(t *testing.T) {
 	type args struct {
 		content []byte
@@ -72,11 +32,13 @@ CD /root # execute the root directory of the script
 COPY ./README ./test
 
 RUN ls -lh
+
+RUN echo "hello    world"
 `),
 			},
 			wantC: &Config{
 				Host:     "192.168.0.1",
-				Port:     22,
+				Port:     "22",
 				Username: "axetroy",
 				CWD:      "",
 				Env: map[string]string{
@@ -86,19 +48,38 @@ RUN ls -lh
 				Actions: []Action{
 					{
 						Action:    "CD",
-						Arguments: "/root",
+						Arguments: []string{"/root"},
 					},
 					{
 						Action:    "COPY",
-						Arguments: "./README ./test",
+						Arguments: []string{"./README", "./test"},
 					},
 					{
 						Action:    "RUN",
-						Arguments: "ls -lh",
+						Arguments: []string{"ls", "-lh"},
+					},
+					{
+						Action:    "RUN",
+						Arguments: []string{"echo", "\"hello", "", "", "", "world\""},
 					},
 				},
 			},
 			wantErr: false,
+		},
+		{
+			name: "parse CMD",
+			args: args{
+				content: []byte(`CMD ["ls", "-lh"]`),
+			},
+			wantC: &Config{
+				Env: map[string]string{},
+				Actions: []Action{
+					{
+						Action:    "CMD",
+						Arguments: []string{"ls", "-lh"},
+					},
+				},
+			},
 		},
 	}
 	for _, tt := range tests {

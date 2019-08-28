@@ -1,8 +1,6 @@
 package parser
 
 import (
-	"errors"
-	"fmt"
 	"regexp"
 )
 
@@ -13,10 +11,6 @@ type Files struct {
 
 func FileParser(source string) (*Files, error) {
 	files := regexp.MustCompile("\\s+").Split(source, -1)
-
-	if len(files) < 2 {
-		return nil, errors.New(fmt.Sprintf("COPY/DOWNLOAD requires a minimum of two parameters, now received %s", source))
-	}
 
 	lastElementIndex := len(files)
 

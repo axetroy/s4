@@ -3,8 +3,7 @@ package runner
 import (
 	"bufio"
 	"fmt"
-	"github.com/axetroy/go-fs"
-	"github.com/axetroy/sshunter/lib/parser"
+	"github.com/axetroy/s4/lib/parser"
 	"github.com/cheggaaa/pb/v3"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
@@ -155,7 +154,7 @@ func (c *Client) downloadFile(remoteFilePath string, localDir string) error {
 	localFilePath := path.Join(localDir, localFileName)
 
 	// ensure local dir exist
-	if err := fs.EnsureDir(localDir); err != nil {
+	if err := os.MkdirAll(localDir, os.ModeDir); err != nil {
 		return err
 	}
 

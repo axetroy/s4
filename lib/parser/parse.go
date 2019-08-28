@@ -1,22 +1,18 @@
 package parser
 
 import (
-	"errors"
-	"fmt"
-	"github.com/axetroy/go-fs"
-	"github.com/fatih/color"
-	"strconv"
+	"io/ioutil"
 	"strings"
 )
 
 type Action struct {
 	Action    string
-	Arguments string
+	Arguments []string
 }
 
 type Config struct {
 	Host     string
-	Port     int
+	Port     string
 	CWD      string
 	Env      map[string]string
 	Username string
@@ -24,77 +20,45 @@ type Config struct {
 	Actions  []Action
 }
 
-func RemoveComment(value string) string {
-	hashIndex := strings.Index(value, "#")
-
-	if hashIndex < 0 {
-		return value
-	}
-
-	result := strings.Join(strings.Split(value, "")[:hashIndex], "")
-
-	return strings.Trim(result, " ")
-}
-
-func ParseFile(s4File string) (*Config, error) {
+func ParseFile(configFilepath string) (*Config, error) {
 	var content []byte
-	content, err := fs.ReadFile(s4File)
+	content, err := ioutil.ReadFile(configFilepath)
 
 	if err != nil {
 		return nil, err
 	}
 
-	c, err := Parse(content)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if err := Check(c); err != nil {
-		return nil, err
-	}
-
-	return c, nil
+	return Parse(content)
 }
 
 func Parse(content []byte) (c *Config, err error) {
-	raw := string(content[:])
-	lines := strings.Split(raw, "\n")
-
 	c = &Config{}
 
 	c.Env = map[string]string{}
 
-	for _, line := range lines {
-		s := strings.Trim(line, "")
-		if s == "" {
-			continue
-		}
+	tokens, err := GenerateAST(string(content))
 
-		// comment line
-		if strings.Index(s, "#") == 0 {
-			continue
-		}
+	if err != nil {
+		return nil, err
+	}
 
-		arr := strings.Split(s, " ")
-
-		keyword := arr[0]
-		value := strings.Join(arr[1:], " ")
-
-		switch keyword {
+	for _, token := range tokens {
+		value := strings.Join(token.value, " ")
+		switch token.Key {
 		case "HOST":
-			c.Host = RemoveComment(value)
+			c.Host = value
 			break
 		case "PORT":
-			if port, e := strconv.Atoi(RemoveComment(value)); e != nil {
-				err = e
-				return
-			} else {
-				c.Port = port
-			}
+			c.Port = value
 			break
 		case "USERNAME":
-			c.Username = RemoveComment(value)
+			c.Username = value
+			break
+		case "ENV":
+			envKey := token.value[0]
+			envValue := token.value[1]
+
+			c.Env[envKey] = envValue
 			break
 		case "CD":
 			fallthrough
@@ -108,22 +72,9 @@ func Parse(content []byte) (c *Config, err error) {
 			fallthrough
 		case "DOWNLOAD":
 			c.Actions = append(c.Actions, Action{
-				Action:    keyword,
-				Arguments: RemoveComment(value),
+				Action:    token.Key,
+				Arguments: token.value,
 			})
-			break
-		case "ENV":
-			keyValuePair := strings.Split(RemoveComment(strings.Trim(value, " ")), "=")
-
-			if len(keyValuePair) < 2 {
-				err = errors.New(fmt.Sprintf("Invalid ENV '%s'", value))
-				return
-			}
-
-			envKey := strings.Trim(keyValuePair[0], " ")
-			envValue := strings.Trim(strings.Join(keyValuePair[1:], "="), " ")
-
-			c.Env[envKey] = envValue
 			break
 		case "BASH":
 			fallthrough
@@ -131,31 +82,13 @@ func Parse(content []byte) (c *Config, err error) {
 			fallthrough
 		case "RUN":
 			c.Actions = append(c.Actions, Action{
-				Action:    keyword,
-				Arguments: value,
+				Action:    token.Key,
+				Arguments: token.value,
 			})
 			break
-		default:
-			err = errors.New(fmt.Sprintf("Invalid keyword `%s`", color.RedString(keyword)))
-			return
 		}
 
 	}
 
-	// check config is valid
-
 	return
-}
-
-// check config file is valid of not
-func Check(c *Config) error {
-	if c.Host == "" {
-		return errors.New(fmt.Sprintf("Invalid 'host' %s", c.Host))
-	}
-
-	if c.Port == 0 {
-		return errors.New(fmt.Sprintf("Invalid 'port' %d", c.Port))
-	}
-
-	return nil
 }

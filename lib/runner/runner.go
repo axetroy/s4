@@ -1,12 +1,10 @@
 package runner
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/AlecAivazis/survey"
-	"github.com/axetroy/go-fs"
-	"github.com/axetroy/sshunter/lib/parser"
+	"github.com/axetroy/s4/lib/parser"
 	"github.com/fatih/color"
 	"os"
 	"os/exec"
@@ -18,13 +16,18 @@ type Runner struct {
 	Config *parser.Config
 }
 
-func NewRunner(configFile string) (*Runner, error) {
-	if fs.PathExists(configFile) == false {
-		msg := fmt.Sprintf("Config file `%s` not found", configFile)
+func NewRunner(configFilepath string) (*Runner, error) {
+	if f, err := os.Stat(configFilepath); err != nil {
+		msg := fmt.Sprintf("Config file `%s` not found", configFilepath)
 		return nil, errors.New(color.RedString(msg))
+	} else {
+		if f.IsDir() {
+			msg := fmt.Sprintf("Config file `%s` is not a file", configFilepath)
+			return nil, errors.New(color.RedString(msg))
+		}
 	}
 
-	config, err := parser.ParseFile(configFile)
+	config, err := parser.ParseFile(configFilepath)
 
 	if err != nil {
 		return nil, err
@@ -75,30 +78,35 @@ func (r *Runner) Run() error {
 	step := 1
 
 	for _, action := range r.Config.Actions {
+		argument := strings.Join(action.Arguments, " ")
 
 		switch action.Action {
 		case "CD":
-			r.Config.CWD = action.Arguments
-			fmt.Printf("[Step %v]: CD %s\n", step, color.GreenString(action.Arguments))
+			dir := argument
+			r.Config.CWD = dir
+			fmt.Printf("[Step %v]: CD %s\n", step, color.GreenString(dir))
 			step += 1
 			break
 		case "BASH":
 			commandWithColor := color.YellowString(fmt.Sprintf("%v", action.Arguments))
 			fmt.Printf("[Step %v]: CMD %s\n", step, commandWithColor)
 
-			bashPath := ""
+			bashPath := os.Getenv("SHELL")
 
-			if bashBinPath, bashNotExist := exec.LookPath("bash"); bashNotExist != nil {
-				if shBinPath, shNotExist := exec.LookPath("sh"); shNotExist != nil {
-					return errors.New(" can not found 'bash' in your system")
+			// if not found bash in you env.
+			if len(bashPath) == 0 {
+				if bashBinPath, bashNotExist := exec.LookPath("bash"); bashNotExist != nil {
+					if shBinPath, shNotExist := exec.LookPath("sh"); shNotExist != nil {
+						return errors.New(" can not found 'bash' in your system")
+					} else {
+						bashPath = shBinPath
+					}
 				} else {
-					bashPath = shBinPath
+					bashPath = bashBinPath
 				}
-			} else {
-				bashPath = bashBinPath
 			}
 
-			c := exec.Command(bashPath, "-c", action.Arguments)
+			c := exec.Command(bashPath, "-c", argument)
 
 			c.Stdout = os.Stdout
 			c.Stderr = os.Stderr
@@ -119,21 +127,8 @@ func (r *Runner) Run() error {
 
 			fmt.Printf("[Step %v]: CMD %s\n", step, commandWithColor)
 
-			type JsonType struct {
-				Array []string
-			}
-
-			var commands []string
-
-			if err := json.Unmarshal([]byte(action.Arguments), &commands); err != nil {
-
-				msg := fmt.Sprintf("CMD require JSON array format but got `%s`\n", action.Arguments)
-
-				return errors.New(msg)
-			}
-
-			command := commands[0]
-			args := commands[1:]
+			command := action.Arguments[0]
+			args := action.Arguments[1:]
 
 			if _, err := exec.LookPath(command); err != nil {
 				fmt.Printf("didn't find '%s' executable\n", command)
@@ -159,14 +154,14 @@ func (r *Runner) Run() error {
 
 			fmt.Printf("[Step %v]: RUN %s\n", step, commandWithColor)
 
-			if err := client.Run(action.Arguments); err != nil {
+			if err := client.Run(argument); err != nil {
 				return err
 			}
 
 			step += 1
 			break
 		case "MOVE":
-			args := strings.Split(action.Arguments, " ")
+			args := strings.Split(argument, " ")
 
 			if len(args) != 2 {
 				return errors.New(fmt.Sprintf("move require source and destination but got `%s`", args))
@@ -193,7 +188,7 @@ func (r *Runner) Run() error {
 
 			break
 		case "COPY":
-			args := strings.Split(action.Arguments, " ")
+			args := action.Arguments
 
 			if len(args) != 2 {
 				return errors.New(fmt.Sprintf("copy require source and destination but got `%s`", args))
@@ -220,7 +215,7 @@ func (r *Runner) Run() error {
 
 			break
 		case "DELETE":
-			args := strings.Split(action.Arguments, " ")
+			args := action.Arguments
 
 			var files []string
 
@@ -232,7 +227,7 @@ func (r *Runner) Run() error {
 				files = append(files, file)
 			}
 
-			fmt.Printf("[Step %v]: DELETE %s\n", step, color.YellowString(action.Arguments))
+			fmt.Printf("[Step %v]: DELETE %s\n", step, color.YellowString(argument))
 
 			if err := client.Delete(files...); err != nil {
 				return err
@@ -242,7 +237,7 @@ func (r *Runner) Run() error {
 
 			break
 		case "UPLOAD":
-			f, err := parser.FileParser(action.Arguments)
+			f, err := parser.FileParser(argument)
 
 			if err != nil {
 				return err
@@ -273,7 +268,7 @@ func (r *Runner) Run() error {
 
 			break
 		case "DOWNLOAD":
-			f, err := parser.FileParser(action.Arguments)
+			f, err := parser.FileParser(argument)
 
 			if err != nil {
 				return err
