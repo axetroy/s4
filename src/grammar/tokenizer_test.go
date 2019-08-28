@@ -164,16 +164,48 @@ RUN ls -lh
 			},
 			wantErr: false,
 		},
+		{
+			name: "multi line script for RUN",
+			args: args{
+				input: `
+RUN yarn \
+	&& npm run build \
+	&& env
+`,
+			},
+			want: []grammar.Token{
+				{
+					Key:   "RUN",
+					Value: []string{"yarn", "&&", "npm", "run", "build", "&&", "env"},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "multi line script for RUN with tail space blank",
+			args: args{
+				input: `RUN yarn \ 
+	&& env
+`,
+			},
+			want: []grammar.Token{
+				{
+					Key:   "RUN",
+					Value: []string{"yarn", "&&", "env"},
+				},
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := grammar.Tokenizer(tt.args.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GenerateAST() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Tokenizer() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GenerateAST() = %v, want %v", got, tt.want)
+				t.Errorf("Tokenizer() = %v, want %v", got, tt.want)
 			}
 		})
 	}

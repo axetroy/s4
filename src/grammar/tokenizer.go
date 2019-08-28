@@ -14,12 +14,18 @@ type Token struct {
 }
 
 var (
-	CommentIdentifier = "#"
-	ValidKeywordReg   = regexp.MustCompile("CONNECT|ENV|CD|UPLOAD|DOWNLOAD|COPY|MOVE|DELETE|RUN|CMD|BASH")
-	KeywordRed        = regexp.MustCompile("[A-Z]")
-	EmptyStrReg       = regexp.MustCompile("\\s")
-	LineWrapReg       = regexp.MustCompile("\\\n")
+	commentIdentifier = "#"
+	validKeywordReg   = regexp.MustCompile("CONNECT|ENV|CD|UPLOAD|DOWNLOAD|COPY|MOVE|DELETE|RUN|CMD|BASH")
+	keywordRed        = regexp.MustCompile("[A-Z]")
+	emptyStrReg       = regexp.MustCompile("\\s")
+	lineWrapReg       = regexp.MustCompile("\\\n")
+	lineBreakChar     = "\\"
+	spaceBlank        = " "
 )
+
+func isAllowLineBreakAction(actionName string) bool {
+	return actionName == "RUN" || actionName == "BASH"
+}
 
 func Tokenizer(input string) ([]Token, error) {
 	currentIndex := 0
@@ -34,26 +40,26 @@ func Tokenizer(input string) ([]Token, error) {
 		char := string(input[currentIndex])
 
 		// if found line break. skip
-		if LineWrapReg.MatchString(char) {
+		if lineWrapReg.MatchString(char) {
 			currentIndex++
 			continue
 		}
 
 		// if found space blank. skip
-		if EmptyStrReg.MatchString(char) {
+		if emptyStrReg.MatchString(char) {
 			currentIndex++
 			continue
 		}
 
 		// if found comment. skip
-		if char == CommentIdentifier {
+		if char == commentIdentifier {
 		findCommentContent:
 			for {
 				if currentIndex > len(input)-1 {
 					break findCommentContent
 				}
 				char = string(input[currentIndex])
-				if LineWrapReg.MatchString(char) {
+				if lineWrapReg.MatchString(char) {
 					break findCommentContent
 				} else {
 					currentIndex++
@@ -63,7 +69,7 @@ func Tokenizer(input string) ([]Token, error) {
 		}
 
 		// if match the keyword
-		if KeywordRed.MatchString(char) == true {
+		if keywordRed.MatchString(char) == true {
 			var (
 				keyword      = ""
 				value        []string
@@ -77,7 +83,7 @@ func Tokenizer(input string) ([]Token, error) {
 				}
 				char = string(input[currentIndex])
 
-				if KeywordRed.MatchString(char) == false {
+				if keywordRed.MatchString(char) == false {
 					break findKeyword
 				}
 
@@ -87,7 +93,7 @@ func Tokenizer(input string) ([]Token, error) {
 			}
 
 			// valid keyword
-			if ValidKeywordReg.MatchString(keyword) == false {
+			if validKeywordReg.MatchString(keyword) == false {
 				return tokens, errors.New(fmt.Sprintf("invalid keyword `%s`", keyword))
 			}
 
@@ -97,7 +103,7 @@ func Tokenizer(input string) ([]Token, error) {
 					break
 				}
 				char = string(input[currentIndex])
-				if EmptyStrReg.MatchString(char) {
+				if emptyStrReg.MatchString(char) {
 					currentIndex++
 				} else {
 					break skipEmptyString
@@ -113,17 +119,41 @@ func Tokenizer(input string) ([]Token, error) {
 				char = string(input[currentIndex])
 
 				// if found line wrap, eg. \n
-				if LineWrapReg.MatchString(char) {
+				if lineWrapReg.MatchString(char) {
+
+					// only allow RUN and BASH to use line break
+					if isAllowLineBreakAction(keyword) {
+						// find space blank forward and skip it.
+						lastCharIndex := currentIndex - 1
+						lastChar := ""
+					findSpace:
+						for {
+							lastChar = string(input[lastCharIndex])
+
+							if emptyStrReg.MatchString(lastChar) {
+								lastCharIndex--
+								continue
+							}
+
+							break findSpace
+						}
+
+						if lastChar == lineBreakChar {
+							currentIndex++
+							continue
+						}
+					}
+
 					break findValue
 				}
 
 				// if found comment, then ignore future content
-				if char == CommentIdentifier {
+				if char == commentIdentifier {
 					break findValue
 				}
 
 				// if in space link in value, so we think it's an other value
-				if EmptyStrReg.MatchString(char) {
+				if emptyStrReg.MatchString(char) {
 					value = append(value, currentValue)
 					currentValue = ""
 					currentIndex++
@@ -147,8 +177,15 @@ func Tokenizer(input string) ([]Token, error) {
 			}
 
 			// validate token here
-			valueStr := strings.Join(value, " ")
+			valueStr := strings.Join(value, spaceBlank)
 			valueLength := len(value)
+
+			if isAllowLineBreakAction(keyword) {
+
+				valueStr := regexp.MustCompile("\\\\\\s+").ReplaceAllString(valueStr, "")
+
+				value = strings.Split(valueStr, spaceBlank)
+			}
 
 			switch keyword {
 			case "ENV":
