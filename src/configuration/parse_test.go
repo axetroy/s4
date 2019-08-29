@@ -44,6 +44,7 @@ RUN echo "hello    world"
 					"PRIVATE_KEY": "123",
 					"TOKEN":       "xxxx",
 				},
+				Var: map[string]string{},
 				Actions: []configuration.Action{
 					{
 						Action:    "CD",
@@ -72,6 +73,7 @@ RUN echo "hello    world"
 			},
 			wantC: &configuration.Configuration{
 				Env: map[string]string{},
+				Var: map[string]string{},
 				Actions: []configuration.Action{
 					{
 						Action:    "CMD",

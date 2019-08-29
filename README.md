@@ -44,19 +44,20 @@ for more detail about command. print `s4 --help`
 
 ### Documentation
 
-| Syntax   | Description                                              | Multiple | Example                               |
-| -------- | -------------------------------------------------------- | -------- | ------------------------------------- |
-| CONNECT  | connect to remote SSH server                             | ✖️       | CONNECT root@192.168.0.1:22           |
-| ENV      | set environmental variable for `RUN` command             | ☑️       | ENV PRIVATE_KEY = 123                 |
-| CD       | change current working directory of remote server        | ☑️       | CD /home/axetroy                      |
-| UPLOAD   | upload local files to remote server                      | ☑️       | UPLOAD start.py ./server              |
-| DOWNLOAD | download remote files to local                           | ☑️       | DOWNLOAD start.py ./server            |
-| COPY     | copy file on remote server                               | ☑️       | COPY data.db data.db.bak              |
-| MOVE     | move file on remote server                               | ☑️       | MOVE data.bak data.db                 |
-| DELETE   | delete files on remote server, directory will be ignored | ☑️       | DELETE file1 file2                    |
-| RUN      | run command in remote server                             | ☑️       | RUN python ./remote/start.py          |
-| CMD      | run command in local server                              | ☑️       | CMD ["cat", "README.md"]              |
-| BASH     | run bash script in local server                          | ☑️       | BASH cat package.json \| grep version |
+| Syntax   | Description                                              | Multiple | Example                                            |
+| -------- | -------------------------------------------------------- | -------- | -------------------------------------------------- |
+| CONNECT  | connect to remote SSH server                             | ✖️       | CONNECT root@192.168.0.1:22                        |
+| ENV      | set environmental variable for `RUN` command             | ☑️       | ENV PRIVATE_KEY = 123                              |
+| VAR      | defining variables. it can use in anywhere               | ☑️       | VAR PRIVATE_KEY = 123<br/>RUN echo {{PRIVATE_KEY}} |
+| CD       | change current working directory of remote server        | ☑️       | CD /home/axetroy                                   |
+| UPLOAD   | upload local files to remote server                      | ☑️       | UPLOAD start.py ./server                           |
+| DOWNLOAD | download remote files to local                           | ☑️       | DOWNLOAD start.py ./server                         |
+| COPY     | copy file on remote server                               | ☑️       | COPY data.db data.db.bak                           |
+| MOVE     | move file on remote server                               | ☑️       | MOVE data.bak data.db                              |
+| DELETE   | delete files on remote server, directory will be ignored | ☑️       | DELETE file1 file2                                 |
+| RUN      | run command in remote server                             | ☑️       | RUN python ./remote/start.py                       |
+| CMD      | run command in local server                              | ☑️       | CMD ["cat", "README.md"]                           |
+| BASH     | run bash script in local server                          | ☑️       | BASH cat package.json \| grep version              |
 
 ### Installation
 

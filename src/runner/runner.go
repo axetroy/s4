@@ -1,11 +1,13 @@
 package runner
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"github.com/AlecAivazis/survey"
 	"github.com/axetroy/s4/src/configuration"
 	"github.com/axetroy/s4/src/ssh"
+	"github.com/axetroy/s4/src/variable"
 	"github.com/fatih/color"
 	"os"
 	"os/exec"
@@ -88,9 +90,80 @@ func (r *Runner) Run() error {
 		argument := strings.Join(action.Arguments, " ")
 
 		switch action.Action {
+		case "VAR":
+			fmt.Printf("[Step %v]: VAR %s\n", step, color.GreenString(argument))
+			step++
+
+			if Var, err := variable.Parse(argument); err != nil {
+				return err
+			} else {
+				switch Var.Type {
+				case variable.TypeLiteral:
+					r.Config.Var[Var.Key] = Var.Value
+					break
+				case variable.TypeEnv:
+					if Var.Remote == false {
+						// get local env
+						r.Config.Var[Var.Key] = os.Getenv(Var.Value)
+					} else {
+						// get remote env
+						remoteEnvValue, err := client.Env(Var.Value)
+
+						if err != nil {
+							return err
+						}
+
+						r.Config.Var[Var.Key] = remoteEnvValue
+					}
+					break
+				case variable.TypeCommand:
+					if Var.Remote == false {
+						// execute command at local
+
+						arr := strings.Split(Var.Value, " ")
+						command := arr[0]
+						args := arr[1:]
+
+						c := exec.Command(command, args...)
+
+						var stdoutBuf bytes.Buffer
+						var stderrBuf bytes.Buffer
+
+						c.Stdout = &stdoutBuf
+						c.Stderr = &stderrBuf
+
+						if err := c.Run(); err != nil {
+							return err
+						}
+
+						if c.ProcessState.Success() == false {
+							return errors.New(fmt.Sprintf("run command '%s' fail.", action.Arguments))
+						}
+
+						r.Config.Var[Var.Key] = stdoutBuf.String()
+					} else {
+						// execute command at remote
+						var stdoutBuf bytes.Buffer
+						var stderrBuf bytes.Buffer
+
+						err := client.RunRaw(Var.Value, &stdoutBuf, &stderrBuf)
+
+						if err != nil {
+							return err
+						}
+
+						r.Config.Var[Var.Key] = stdoutBuf.String()
+
+						fmt.Println(r.Config.Var[Var.Key])
+					}
+					break
+				}
+
+			}
+			break
 		case "CD":
 			dir := argument
-			r.Config.CWD = dir
+			r.Config.CWD = variable.Compile(dir, r.Config.Var)
 			fmt.Printf("[Step %v]: CD %s\n", step, color.GreenString(dir))
 			step++
 			break
@@ -113,7 +186,9 @@ func (r *Runner) Run() error {
 				}
 			}
 
-			c := exec.Command(bashPath, "-c", argument)
+			command := variable.Compile(argument, r.Config.Var)
+
+			c := exec.Command(bashPath, "-c", command)
 
 			c.Stdout = os.Stdout
 			c.Stderr = os.Stderr
@@ -134,8 +209,8 @@ func (r *Runner) Run() error {
 
 			fmt.Printf("[Step %v]: CMD %s\n", step, commandWithColor)
 
-			command := action.Arguments[0]
-			args := action.Arguments[1:]
+			command := variable.Compile(action.Arguments[0], r.Config.Var)
+			args := variable.CompileArray(action.Arguments[1:], r.Config.Var)
 
 			if _, err := exec.LookPath(command); err != nil {
 				fmt.Printf("didn't find '%s' executable\n", command)
@@ -161,15 +236,17 @@ func (r *Runner) Run() error {
 
 			fmt.Printf("[Step %v]: RUN %s\n", step, commandWithColor)
 
-			if err := client.Run(argument); err != nil {
+			command := variable.Compile(argument, r.Config.Var)
+
+			if err := client.Run(command); err != nil {
 				return err
 			}
 
 			step++
 			break
 		case "MOVE":
-			sourceFilepath := action.Arguments[0]
-			destinationFilepath := action.Arguments[1]
+			sourceFilepath := variable.Compile(action.Arguments[0], r.Config.Var)
+			destinationFilepath := variable.Compile(action.Arguments[1], r.Config.Var)
 
 			if path.IsAbs(sourceFilepath) == false {
 				sourceFilepath = path.Join(r.Config.CWD, sourceFilepath)
@@ -189,8 +266,8 @@ func (r *Runner) Run() error {
 
 			break
 		case "COPY":
-			sourceFilepath := action.Arguments[0]
-			destinationFilepath := action.Arguments[1]
+			sourceFilepath := variable.Compile(action.Arguments[0], r.Config.Var)
+			destinationFilepath := variable.Compile(action.Arguments[1], r.Config.Var)
 
 			if path.IsAbs(sourceFilepath) == false {
 				sourceFilepath = path.Join(r.Config.CWD, sourceFilepath)
@@ -210,7 +287,7 @@ func (r *Runner) Run() error {
 
 			break
 		case "DELETE":
-			args := action.Arguments
+			args := variable.CompileArray(action.Arguments, r.Config.Var)
 
 			var files []string
 
@@ -232,8 +309,8 @@ func (r *Runner) Run() error {
 
 			break
 		case "UPLOAD":
-			sourceFiles := action.Arguments[:len(action.Arguments)-1]
-			destinationDir := action.Arguments[len(action.Arguments)-1]
+			sourceFiles := variable.CompileArray(action.Arguments[:len(action.Arguments)-1], r.Config.Var)
+			destinationDir := variable.Compile(action.Arguments[len(action.Arguments)-1], r.Config.Var)
 
 			if path.IsAbs(destinationDir) == false {
 				if r.Config.CWD != "" {
@@ -260,8 +337,8 @@ func (r *Runner) Run() error {
 
 			break
 		case "DOWNLOAD":
-			sourceFiles := action.Arguments[:len(action.Arguments)-1]
-			destinationDir := action.Arguments[len(action.Arguments)-1]
+			sourceFiles := variable.CompileArray(action.Arguments[:len(action.Arguments)-1], r.Config.Var)
+			destinationDir := variable.Compile(action.Arguments[len(action.Arguments)-1], r.Config.Var)
 
 			if path.IsAbs(destinationDir) == false {
 				destinationDir = path.Join(localCwd, destinationDir)

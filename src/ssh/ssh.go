@@ -2,6 +2,7 @@ package ssh
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"github.com/axetroy/s4/src/configuration"
 	"github.com/cheggaaa/pb/v3"
@@ -82,6 +83,75 @@ func (c *Client) Pwd() (string, error) {
 	return c.sftpClient.Getwd()
 }
 
+func (c *Client) Env(key string) (string, error) {
+	command := fmt.Sprintf("echo $%s", key)
+
+	// Create a session. It is one session per command.
+	session, err := c.sshClient.NewSession()
+
+	if err != nil {
+		return "", err
+	}
+
+	defer session.Close()
+
+	var stdoutBuf bytes.Buffer
+	var stderrBuf bytes.Buffer
+
+	session.Stdout = &stdoutBuf
+	session.Stderr = &stderrBuf
+
+	var setEnvCommand []string
+
+	// set environmental variable before run
+	for key, value := range c.config.Env {
+		// export KEY=VALUE
+		setEnvCommand = append(setEnvCommand, fmt.Sprintf("export %s=%s;", key, value))
+	}
+
+	if len(setEnvCommand) != 0 {
+		command = strings.Join(setEnvCommand, " ") + " " + command
+	}
+
+	if err = session.Run(command); err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(stdoutBuf.String()), nil
+}
+
+func (c *Client) RunRaw(command string, stdout *bytes.Buffer, stderr *bytes.Buffer) error {
+	// Create a session. It is one session per command.
+	session, err := c.sshClient.NewSession()
+
+	if err != nil {
+		return err
+	}
+
+	defer session.Close()
+
+	session.Stdout = stdout
+	session.Stderr = stderr
+
+	var setEnvCommand []string
+
+	// set environmental variable before run
+	for key, value := range c.config.Env {
+		// export KEY=VALUE
+		setEnvCommand = append(setEnvCommand, fmt.Sprintf("export %s=%s;", key, value))
+	}
+
+	if len(setEnvCommand) != 0 {
+		command = strings.Join(setEnvCommand, " ") + " " + command
+	}
+
+	if err = session.Run(command); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (c *Client) Run(command string) error {
 	// Create a session. It is one session per command.
 	session, err := c.sshClient.NewSession()
@@ -109,8 +179,6 @@ func (c *Client) Run(command string) error {
 	}
 
 	go io.Copy(os.Stdout, sessionStdErr)
-
-	//fmt.Println("当前", *c.config.CWD)
 
 	if c.config.CWD != "" {
 		command = "cd " + c.config.CWD + " && " + command

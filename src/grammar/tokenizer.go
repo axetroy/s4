@@ -15,7 +15,7 @@ type Token struct {
 
 var (
 	commentIdentifier = "#"
-	validKeywordReg   = regexp.MustCompile("CONNECT|ENV|CD|UPLOAD|DOWNLOAD|COPY|MOVE|DELETE|RUN|CMD|BASH")
+	validKeywordReg   = regexp.MustCompile("CONNECT|ENV|VAR|CD|UPLOAD|DOWNLOAD|COPY|MOVE|DELETE|RUN|CMD|BASH")
 	keywordRed        = regexp.MustCompile("[A-Z]")
 	emptyStrReg       = regexp.MustCompile("\\s")
 	lineWrapReg       = regexp.MustCompile("\\\n")

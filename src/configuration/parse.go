@@ -17,6 +17,7 @@ type Configuration struct {
 	Port     string
 	CWD      string
 	Env      map[string]string
+	Var      map[string]string
 	Username string
 	Password string
 	Actions  []Action
@@ -37,6 +38,7 @@ func Parse(content []byte) (c *Configuration, err error) {
 	c = &Configuration{}
 
 	c.Env = map[string]string{}
+	c.Var = map[string]string{}
 
 	tokens, err := grammar.Tokenizer(string(content))
 
@@ -64,6 +66,8 @@ func Parse(content []byte) (c *Configuration, err error) {
 
 			c.Env[envKey] = envValue
 			break
+		case "VAR":
+			fallthrough
 		case "CD":
 			fallthrough
 		case "COPY":
