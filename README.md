@@ -6,7 +6,7 @@
 
 ## s4
 
-Perform remote server tasks on local computer
+Integrate local and remote workflow.
 
 Features:
 
