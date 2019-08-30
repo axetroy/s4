@@ -266,12 +266,6 @@ or type the following command to upgrade to the latest version.
 > go get -v -u github.com/axetroy/s4
 > cd $GOPATH/src/github.com/axetroy/s4
 > make build
-> ls -lh ./bin
-
-total 24624
--rw-r--r--  1 axetroy  staff   3.9M Aug 28 14:11 s4_linux_x64.tar.gz
--rw-r--r--@ 1 axetroy  staff   3.8M Aug 28 14:11 s4_osx_x64.tar.gz
--rw-r--r--  1 axetroy  staff   3.8M Aug 28 14:11 s4_win_x64.tar.gz
 ```
 
 ### Test
