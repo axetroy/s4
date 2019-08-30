@@ -222,7 +222,7 @@ func (c *Client) downloadFile(remoteFilePath string, localDir string) error {
 	localFilePath := path.Join(localDir, localFileName)
 
 	// ensure local dir exist
-	if err := os.MkdirAll(localDir, os.ModeDir); err != nil {
+	if err := os.MkdirAll(localDir, 0755); err != nil {
 		return err
 	}
 

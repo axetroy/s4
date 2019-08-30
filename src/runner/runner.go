@@ -308,7 +308,7 @@ func (r *Runner) Run() error {
 
 			break
 		case "UPLOAD":
-			sourceFiles := variable.CompileArray(action.Arguments[:len(action.Arguments)-1], r.Config.Var)
+			sourceFiles := variable.CompileArray(action.Arguments[:len(action.Arguments)-2], r.Config.Var)
 			destinationDir := variable.Compile(action.Arguments[len(action.Arguments)-1], r.Config.Var)
 
 			if path.IsAbs(destinationDir) == false {
@@ -336,7 +336,7 @@ func (r *Runner) Run() error {
 
 			break
 		case "DOWNLOAD":
-			sourceFiles := variable.CompileArray(action.Arguments[:len(action.Arguments)-1], r.Config.Var)
+			sourceFiles := variable.CompileArray(action.Arguments[:len(action.Arguments)-2], r.Config.Var)
 			destinationDir := variable.Compile(action.Arguments[len(action.Arguments)-1], r.Config.Var)
 
 			if path.IsAbs(destinationDir) == false {
