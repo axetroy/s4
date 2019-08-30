@@ -145,7 +145,7 @@ func (r *Runner) Run() error {
 
 	r.Step++
 
-	fmt.Printf("[step %d]: %s", r.Step, color.GreenString("done!"))
+	fmt.Printf("[step %d]: %s\n", r.Step, color.GreenString("done!"))
 
 	return nil
 }
@@ -267,7 +267,7 @@ func (r *Runner) actionDelete(action configuration.Action) error {
 }
 
 func (r *Runner) actionDownload(action configuration.Action) error {
-	sourceFiles := variable.CompileArray(action.Arguments[:len(action.Arguments)-2], r.Config.Var)
+	sourceFiles := variable.CompileArray(action.Arguments[:len(action.Arguments)-1], r.Config.Var)
 	destinationDir := variable.Compile(action.Arguments[len(action.Arguments)-1], r.Config.Var)
 
 	fmt.Printf("[step %d]: DOWNLOAD %s to %s\n", r.Step, color.YellowString(strings.Join(sourceFiles, ", ")), color.GreenString(destinationDir))
@@ -277,6 +277,10 @@ func (r *Runner) actionDownload(action configuration.Action) error {
 	}
 
 	for _, filePath := range sourceFiles {
+
+		if filePath == "" {
+			continue
+		}
 
 		if path.IsAbs(filePath) == false {
 			if r.Config.CWD != "" {
@@ -330,7 +334,7 @@ func (r *Runner) actionRun(action configuration.Action) error {
 }
 
 func (r *Runner) actionUpload(action configuration.Action) error {
-	sourceFiles := variable.CompileArray(action.Arguments[:len(action.Arguments)-2], r.Config.Var)
+	sourceFiles := variable.CompileArray(action.Arguments[:len(action.Arguments)-1], r.Config.Var)
 	destinationDir := variable.Compile(action.Arguments[len(action.Arguments)-1], r.Config.Var)
 
 	fmt.Printf("[step %d]: UPLOAD %s to %s\n", r.Step, color.YellowString(strings.Join(action.Arguments, ", ")), color.GreenString(destinationDir))
@@ -342,6 +346,10 @@ func (r *Runner) actionUpload(action configuration.Action) error {
 	}
 
 	for _, filePath := range sourceFiles {
+
+		if filePath == "" {
+			continue
+		}
 
 		if path.IsAbs(filePath) == false {
 			filePath = path.Join(r.Cwd, filePath)
