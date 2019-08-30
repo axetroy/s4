@@ -140,7 +140,7 @@ func (r *Runner) Run() error {
 							return errors.New(fmt.Sprintf("run command '%s' fail.", action.Arguments))
 						}
 
-						r.Config.Var[Var.Key] = stdoutBuf.String()
+						r.Config.Var[Var.Key] = strings.TrimSpace(stdoutBuf.String())
 					} else {
 						// execute command at remote
 						var stdoutBuf bytes.Buffer
@@ -152,7 +152,7 @@ func (r *Runner) Run() error {
 							return err
 						}
 
-						r.Config.Var[Var.Key] = stdoutBuf.String()
+						r.Config.Var[Var.Key] = strings.TrimSpace(stdoutBuf.String())
 
 						fmt.Println(r.Config.Var[Var.Key])
 					}
