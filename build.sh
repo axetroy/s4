@@ -53,7 +53,7 @@ do
 
     echo building ${os_arch}
 
-    CGO_ENABLED=0 GOOS=${goos} GOARCH=${goarch} go build -o ./bin/${filename} main.go >/dev/null 2>&1
+    CGO_ENABLED=0 GOOS=${goos} GOARCH=${goarch} go build -ldflags "-s -w" -o ./bin/${filename} main.go >/dev/null 2>&1
 
     # if build success
     if [[ $? == 0 ]];then
