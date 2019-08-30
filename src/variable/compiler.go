@@ -10,9 +10,9 @@ var (
 )
 
 func Compile(template string, varMap map[string]string) string {
-	mathcers := expressionReg.FindAllStringSubmatch(template, -1)
+	matchers := expressionReg.FindAllStringSubmatch(template, -1)
 
-	for _, matcher := range mathcers {
+	for _, matcher := range matchers {
 		key := matcher[1]
 		value := varMap[key]
 

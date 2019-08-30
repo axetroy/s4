@@ -158,7 +158,6 @@ func (r *Runner) Run() error {
 					}
 					break
 				}
-
 			}
 			break
 		case "CD":
@@ -168,7 +167,7 @@ func (r *Runner) Run() error {
 			step++
 			break
 		case "BASH":
-			commandWithColor := color.YellowString(fmt.Sprintf("%v", action.Arguments))
+			commandWithColor := color.YellowString(fmt.Sprintf("%v", argument))
 			fmt.Printf("[Step %v]: BASH %s\n", step, commandWithColor)
 
 			bashPath := os.Getenv("SHELL")
