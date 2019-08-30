@@ -270,7 +270,7 @@ func (r *Runner) actionDownload(action configuration.Action) error {
 	sourceFiles := variable.CompileArray(action.Arguments[:len(action.Arguments)-2], r.Config.Var)
 	destinationDir := variable.Compile(action.Arguments[len(action.Arguments)-1], r.Config.Var)
 
-	fmt.Printf("[step %d]: DOWNLOAD remote:%s to local:%s\n", r.Step, color.YellowString(strings.Join(sourceFiles, ", ")), color.GreenString(destinationDir))
+	fmt.Printf("[step %d]: DOWNLOAD %s to %s\n", r.Step, color.YellowString(strings.Join(sourceFiles, ", ")), color.GreenString(destinationDir))
 
 	if path.IsAbs(destinationDir) == false {
 		destinationDir = path.Join(r.Cwd, destinationDir)
@@ -333,7 +333,7 @@ func (r *Runner) actionUpload(action configuration.Action) error {
 	sourceFiles := variable.CompileArray(action.Arguments[:len(action.Arguments)-2], r.Config.Var)
 	destinationDir := variable.Compile(action.Arguments[len(action.Arguments)-1], r.Config.Var)
 
-	fmt.Printf("[step %d]: UPLOAD local:%s to remote:%s\n", r.Step, color.YellowString(strings.Join(action.Arguments, ", ")), color.GreenString(destinationDir))
+	fmt.Printf("[step %d]: UPLOAD %s to %s\n", r.Step, color.YellowString(strings.Join(action.Arguments, ", ")), color.GreenString(destinationDir))
 
 	if path.IsAbs(destinationDir) == false {
 		if r.Config.CWD != "" {
