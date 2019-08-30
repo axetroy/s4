@@ -13,7 +13,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"regexp"
 	"runtime"
 )
 
@@ -57,32 +56,13 @@ func Upgrade() error {
 
 	var currentAsset *Asset
 
-	switch runtime.GOOS {
-	// osx
-	case "darwin":
-		for _, asset := range response.Assets {
-			if regexp.MustCompile("osx").MatchString(asset.Name) {
-				currentAsset = &asset
-				break
-			}
+	filename := fmt.Sprintf("s4_%s_%s.tar.gz", runtime.GOOS, runtime.GOARCH)
+
+	for _, asset := range response.Assets {
+		if asset.Name == filename {
+			currentAsset = &asset
+			break
 		}
-		break
-	case "windows":
-		for _, asset := range response.Assets {
-			if regexp.MustCompile("win").MatchString(asset.Name) {
-				currentAsset = &asset
-				break
-			}
-		}
-		break
-	case "linux":
-		for _, asset := range response.Assets {
-			if regexp.MustCompile("linux").MatchString(asset.Name) {
-				currentAsset = &asset
-				break
-			}
-		}
-		break
 	}
 
 	if currentAsset == nil {
