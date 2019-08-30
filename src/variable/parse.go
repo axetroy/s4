@@ -46,10 +46,10 @@ func Parse(input string) (Variable, error) {
 	switch action {
 	case "=":
 		// set env
-		eReg := regexp.MustCompile("^\\$([A-Z]+):([a-z]+)\\s*$")
+		envReg := regexp.MustCompile("^\\$([A-Z]+):([a-z]+)\\s*$")
 
-		if eReg.MatchString(value) {
-			matchers := eReg.FindStringSubmatch(value)
+		if envReg.MatchString(value) {
+			matchers := envReg.FindStringSubmatch(value)
 
 			tag := matchers[2]
 
