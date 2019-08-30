@@ -44,7 +44,6 @@ func Parse(input string) (Variable, error) {
 	v.Key = key
 
 	switch action {
-	// 普通的赋值
 	case "=":
 		// set env
 		eReg := regexp.MustCompile("^\\$([A-Z]+):([a-z]+)\\s*$")
@@ -69,7 +68,6 @@ func Parse(input string) (Variable, error) {
 			v.Value = value
 		}
 		return v, nil
-	// 运行命令后的 stdout 最后输出结果
 	case "<=":
 		v.Type = TypeCommand
 		// if command defined as JSON array. eg ["npm"]. this should run in local
