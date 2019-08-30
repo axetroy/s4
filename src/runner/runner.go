@@ -343,7 +343,7 @@ func (r *Runner) Run() error {
 				destinationDir = path.Join(localCwd, destinationDir)
 			}
 
-			fmt.Printf("[Step %v]: DOWNLOAD remote:%s to local:%s\n", step, color.YellowString(strings.Join(action.Arguments, ", ")), color.GreenString(destinationDir))
+			fmt.Printf("[Step %v]: DOWNLOAD remote:%s to local:%s\n", step, color.YellowString(strings.Join(sourceFiles, ", ")), color.GreenString(destinationDir))
 
 			for _, filePath := range sourceFiles {
 
