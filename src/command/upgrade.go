@@ -114,7 +114,7 @@ func Upgrade() error {
 		return err
 	}
 
-	if cmdOutput, err := exec.Command(executablePath, "--version").CombinedOutput(); err != nil {
+	if cmdOutput, err := exec.Command(executablePath, "--help").CombinedOutput(); err != nil {
 		return err
 	} else {
 		fmt.Println(string(cmdOutput))
