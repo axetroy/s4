@@ -47,7 +47,7 @@ func NewRunner(configFilepath string) (*Runner, error) {
 	}, nil
 }
 
-func (r *Runner) Run() error {
+func (r *Runner) Run(check bool) error {
 	client := ssh.NewSSH(r.Config)
 	r.SSH = client
 
@@ -56,6 +56,10 @@ func (r *Runner) Run() error {
 	}
 
 	fmt.Printf("[step %v]: CONNECT %s\n", r.Step, color.GreenString(fmt.Sprintf("%s@%s:%s", r.Config.Username, r.Config.Host, r.Config.Port)))
+
+	if check {
+		return nil
+	}
 
 	if r.Config.Password == "" {
 		// ask password for remote server

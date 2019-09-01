@@ -49,6 +49,10 @@ SOURCE CODE:
 			Name:  "password",
 			Usage: "Specify the password for the server",
 		},
+		cli.BoolFlag{
+			Name:  "check",
+			Usage: "Check if the configuration file is valid",
+		},
 	}
 
 	app.Commands = []cli.Command{
@@ -71,7 +75,8 @@ SOURCE CODE:
 	app.Action = func(c *cli.Context) error {
 		configFile := c.String("config")
 		password := c.String("password")
-		return command.Detault(configFile, password)
+		check := c.Bool("check")
+		return command.Detault(configFile, password, check)
 	}
 
 	if err := app.Run(os.Args); err != nil {
