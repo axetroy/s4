@@ -13,13 +13,13 @@ type Address struct {
 }
 
 var (
-	AddressReg = regexp.MustCompile("^([\\w-]+)@([\\w\\.-]+):(\\d+)$")
+	addressReg = regexp.MustCompile("^([\\w-]+)@([\\w\\.-]+):(\\d+)$")
 )
 
 func Parse(address string) (Address, error) {
 	addr := Address{}
 
-	matchers := AddressReg.FindAllStringSubmatch(address, -1)
+	matchers := addressReg.FindAllStringSubmatch(address, -1)
 
 	if len(matchers) == 0 {
 		return addr, errors.New(fmt.Sprintf("Invalid address `%s`", address))

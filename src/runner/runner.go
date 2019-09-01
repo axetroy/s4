@@ -51,6 +51,10 @@ func (r *Runner) Run() error {
 	client := ssh.NewSSH(r.Config)
 	r.SSH = client
 
+	if r.Config.Host == "" {
+		return errors.New("`CONNECT` field required")
+	}
+
 	fmt.Printf("[step %v]: CONNECT %s\n", r.Step, color.GreenString(fmt.Sprintf("%s@%s:%s", r.Config.Username, r.Config.Host, r.Config.Port)))
 
 	if r.Config.Password == "" {

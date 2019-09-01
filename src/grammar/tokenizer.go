@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/axetroy/s4/src/host"
 	"regexp"
 	"strings"
 )
@@ -188,6 +189,10 @@ func Tokenizer(input string) ([]Token, error) {
 			}
 
 			switch keyword {
+			case "CONNECT":
+				if _, err := host.Parse(valueStr); err != nil {
+					return tokens, err
+				}
 			case "ENV":
 				if regexp.MustCompile("\\w+\\s?=\\s?\\w+").MatchString(valueStr) == false {
 					return tokens, errors.New(fmt.Sprintf("`ENV` need to match `KEY = VALUE` format but got `%s`", valueStr))
