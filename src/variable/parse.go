@@ -27,12 +27,12 @@ var (
 	formatReg = regexp.MustCompile("^(\\w+)\\s*(<?=)\\s*(.*)")
 )
 
-func Parse(input string) (Variable, error) {
+func Parse(input string) (*Variable, error) {
 
 	v := Variable{}
 
 	if formatReg.MatchString(input) == false {
-		return v, errors.New(fmt.Sprintf("Invalid variable format `%s`", input))
+		return nil, errors.New(fmt.Sprintf("Invalid variable format `%s`", input))
 	}
 
 	m := formatReg.FindStringSubmatch(input)
@@ -58,7 +58,7 @@ func Parse(input string) (Variable, error) {
 			} else if tag == "remote" {
 				v.Remote = true
 			} else {
-				return v, errors.New(fmt.Sprintf("Invalid env tag `%s`", tag))
+				return nil, errors.New(fmt.Sprintf("Invalid env tag `%s`", tag))
 			}
 
 			v.Type = TypeEnv
@@ -67,7 +67,8 @@ func Parse(input string) (Variable, error) {
 			v.Type = TypeLiteral
 			v.Value = value
 		}
-		return v, nil
+
+		return &v, nil
 	case "<=":
 		v.Type = TypeCommand
 		// if command defined as JSON array. eg ["npm"]. this should run in local
@@ -75,7 +76,7 @@ func Parse(input string) (Variable, error) {
 			var commands []string
 
 			if err := json.Unmarshal([]byte(value), &commands); err != nil {
-				return v, errors.New(fmt.Sprintf("Invalid JSON array format `%s`", value))
+				return nil, errors.New(fmt.Sprintf("Invalid JSON array format `%s`", value))
 			}
 
 			v.Value = strings.Join(commands, " ")
@@ -84,8 +85,8 @@ func Parse(input string) (Variable, error) {
 			v.Value = value
 			v.Remote = true
 		}
-		return v, nil
+		return &v, nil
 	default:
-		return v, errors.New(fmt.Sprintf("invalid format for variable `%s`", input))
+		return nil, errors.New(fmt.Sprintf("invalid format for variable `%s`", input))
 	}
 }
