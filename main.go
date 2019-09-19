@@ -58,16 +58,23 @@ SOURCE CODE:
 	app.Commands = []cli.Command{
 		{
 			Name:  "version",
-			Usage: "print current s4 version",
+			Usage: "Print current s4 version to stdout",
 			Action: func(c *cli.Context) error {
 				return command.Version(app.Version)
 			},
 		},
 		{
 			Name:  "upgrade",
-			Usage: "upgrade s4 version to latest",
+			Usage: "Upgrade s4 version to latest",
 			Action: func(c *cli.Context) error {
 				return command.Upgrade()
+			},
+		},
+		{
+			Name:  "init",
+			Usage: "Initialize an s4 file",
+			Action: func(c *cli.Context) error {
+				return command.Init()
 			},
 		},
 	}
@@ -76,7 +83,7 @@ SOURCE CODE:
 		configFile := c.String("config")
 		password := c.String("password")
 		check := c.Bool("check")
-		return command.Detault(configFile, password, check)
+		return command.Default(configFile, password, check)
 	}
 
 	if err := app.Run(os.Args); err != nil {

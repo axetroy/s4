@@ -2,7 +2,7 @@ package command
 
 import "github.com/axetroy/s4/src/runner"
 
-func Detault(configFile, password string, check bool) error {
+func Default(configFile, password string, check bool) error {
 	r, err := runner.NewRunner(configFile)
 
 	if err != nil {
