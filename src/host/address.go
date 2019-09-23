@@ -26,11 +26,6 @@ func Parse(address string) (Address, error) {
 	}
 
 	matcher := matchers[0]
-
-	if len(matcher) == 0 {
-		return addr, errors.New(fmt.Sprintf("Invalid address `%s`", address))
-	}
-
 	username := matcher[1]
 	host := matcher[2]
 	port := matcher[3]
