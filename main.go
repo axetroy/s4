@@ -42,16 +42,16 @@ SOURCE CODE:
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "config, c",
-			Usage: "The s4 configuration file.",
+			Usage: "specify the s4 configuration file.",
 			Value: ".s4", // default value
 		},
 		cli.StringFlag{
 			Name:  "password",
-			Usage: "Specify the password for the server",
+			Usage: "specify the password for the server",
 		},
 		cli.BoolFlag{
 			Name:  "check",
-			Usage: "Check if the configuration file is valid",
+			Usage: "check if the configuration file is valid",
 		},
 	}
 

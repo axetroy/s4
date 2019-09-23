@@ -12,13 +12,15 @@ const (
 # For more detail: https://github.com/axetroy/s4
 CONNECT root@192.168.0.0.1:22
 
-ENV	foo = bar
+ENV	FOO = bar
 
 VAR	name = s4
 
 CD /root
 
-RUN echo {{name}}
+RUN echo "project name: {{name}}"
+
+RUN echo "current foo environmental variable: $FOO"
 
 RUN npm run lint \
 	&& npm run test \
