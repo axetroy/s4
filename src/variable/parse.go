@@ -69,9 +69,11 @@ func Parse(input string) (*Variable, error) {
 		}
 
 		return &v, nil
-	case "<=":
+
+	default:
+		// <=
 		v.Type = TypeCommand
-		// if command defined as JSON array. eg ["npm"]. this should run in local
+		// if command defined as JSON array. eg ["npm", "version"]. this should run in local
 		if strings.Index(value, "[") == 0 {
 			var commands []string
 
@@ -86,7 +88,5 @@ func Parse(input string) (*Variable, error) {
 			v.Remote = true
 		}
 		return &v, nil
-	default:
-		return nil, errors.New(fmt.Sprintf("invalid format for variable `%s`", input))
 	}
 }
