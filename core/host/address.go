@@ -1,8 +1,8 @@
 package host
 
 import (
+	"errors"
 	"fmt"
-	"github.com/kataras/iris/core/errors"
 	"regexp"
 )
 

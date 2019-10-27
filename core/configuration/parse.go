@@ -49,7 +49,7 @@ func Parse(content []byte) (c *Configuration, err error) {
 	for _, token := range tokens {
 		value := strings.Join(token.Value, " ")
 		switch token.Key {
-		case "CONNECT":
+		case grammar.ActionCONNECT:
 			addr, err := host.Parse(value)
 
 			if err != nil {
@@ -60,35 +60,35 @@ func Parse(content []byte) (c *Configuration, err error) {
 			c.Port = addr.Port
 			c.Username = addr.Username
 			break
-		case "ENV":
+		case grammar.ActionENV:
 			envKey := token.Value[0]
 			envValue := token.Value[1]
 
 			c.Env[envKey] = envValue
 			break
-		case "VAR":
+		case grammar.ActionVAR:
 			fallthrough
-		case "CD":
+		case grammar.ActionCD:
 			fallthrough
-		case "COPY":
+		case grammar.ActionCOPY:
 			fallthrough
-		case "MOVE":
+		case grammar.ActionMOVE:
 			fallthrough
-		case "DELETE":
+		case grammar.ActionDELETE:
 			fallthrough
-		case "UPLOAD":
+		case grammar.ActionUPLOAD:
 			fallthrough
-		case "DOWNLOAD":
+		case grammar.ActionDOWNLOAD:
 			c.Actions = append(c.Actions, Action{
 				Action:    token.Key,
 				Arguments: token.Value,
 			})
 			break
-		case "BASH":
+		case grammar.ActionBASH:
 			fallthrough
-		case "CMD":
+		case grammar.ActionCMD:
 			fallthrough
-		case "RUN":
+		case grammar.ActionRUN:
 			c.Actions = append(c.Actions, Action{
 				Action:    token.Key,
 				Arguments: token.Value,

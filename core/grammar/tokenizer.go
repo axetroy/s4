@@ -14,9 +14,39 @@ type Token struct {
 	Value []string
 }
 
+const (
+	ActionCONNECT  = "CONNECT"
+	ActionENV      = "ENV"
+	ActionVAR      = "VAR"
+	ActionCD       = "CD"
+	ActionUPLOAD   = "UPLOAD"
+	ActionDOWNLOAD = "DOWNLOAD"
+	ActionCOPY     = "COPY"
+	ActionMOVE     = "MOVE"
+	ActionDELETE   = "DELETE"
+	ActionRUN      = "RUN"
+	ActionCMD      = "CMD"
+	ActionBASH     = "BASH"
+)
+
 var (
+	Actions = []string{
+		ActionCONNECT,
+		ActionENV,
+		ActionVAR,
+		ActionCD,
+		ActionUPLOAD,
+		ActionDOWNLOAD,
+		ActionCOPY,
+		ActionMOVE,
+		ActionDELETE,
+		ActionRUN,
+		ActionRUN,
+		ActionCMD,
+		ActionBASH,
+	}
 	commentIdentifier = "#"
-	validKeywordReg   = regexp.MustCompile("CONNECT|ENV|VAR|CD|UPLOAD|DOWNLOAD|COPY|MOVE|DELETE|RUN|CMD|BASH")
+	validKeywordReg   = regexp.MustCompile(strings.Join(Actions, "|"))
 	keywordRed        = regexp.MustCompile("[A-Z]")
 	emptyStrReg       = regexp.MustCompile("\\s")
 	lineWrapReg       = regexp.MustCompile("\\\n")
@@ -189,11 +219,11 @@ func Tokenizer(input string) ([]Token, error) {
 			}
 
 			switch keyword {
-			case "CONNECT":
+			case ActionCONNECT:
 				if _, err := host.Parse(valueStr); err != nil {
 					return tokens, err
 				}
-			case "ENV":
+			case ActionENV:
 				if regexp.MustCompile("\\w+\\s?=\\s?\\w+").MatchString(valueStr) == false {
 					return tokens, errors.New(fmt.Sprintf("`ENV` need to match `KEY = VALUE` format but got `%s`", valueStr))
 				}
@@ -207,41 +237,41 @@ func Tokenizer(input string) ([]Token, error) {
 
 				break
 
-			case "CD":
+			case ActionCD:
 				if valueLength != 1 {
 					return tokens, errors.New(fmt.Sprintf("`CD` only accepts one string but got `%s`", valueStr))
 				}
 				break
 
-			case "UPLOAD":
+			case ActionUPLOAD:
 				fallthrough
-			case "DOWNLOAD":
+			case ActionDOWNLOAD:
 				if valueLength < 2 {
 					return tokens, errors.New(fmt.Sprintf("`%s` only accepts one string but got `%s`", keyword, valueStr))
 				}
 
 				break
-			case "COPY":
+			case ActionCOPY:
 				fallthrough
-			case "MOVE":
+			case ActionMOVE:
 				if valueLength != 2 {
 					return tokens, errors.New(fmt.Sprintf("`%s` only accepts two string but got `%s`", keyword, valueStr))
 				}
 				break
-			case "DELETE":
+			case ActionDELETE:
 				if valueLength < 1 {
 					return tokens, errors.New(fmt.Sprintf("`%s` accepts at least one parameter but got `%s`", keyword, valueStr))
 				}
 				break
-			case "RUN":
+			case ActionRUN:
 				fallthrough
-			case "BASH":
+			case ActionBASH:
 				if valueLength < 1 {
 					return tokens, errors.New(fmt.Sprintf("`%s` accepts at least one parameter but got `%s`", keyword, valueStr))
 				}
 
 				break
-			case "CMD":
+			case ActionCMD:
 				var commands []string
 
 				if err := json.Unmarshal([]byte(valueStr), &commands); err != nil {
