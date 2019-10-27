@@ -4,15 +4,16 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/AlecAivazis/survey"
-	"github.com/axetroy/s4/src/configuration"
-	"github.com/axetroy/s4/src/ssh"
-	"github.com/axetroy/s4/src/variable"
-	"github.com/fatih/color"
 	"os"
 	"os/exec"
 	"path"
 	"strings"
+
+	"github.com/AlecAivazis/survey"
+	"github.com/axetroy/s4/core/configuration"
+	"github.com/axetroy/s4/core/ssh"
+	"github.com/axetroy/s4/core/variable"
+	"github.com/fatih/color"
 )
 
 type Runner struct {

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/axetroy/s4/src/command"
+	"github.com/axetroy/s4/core/command"
 	"github.com/urfave/cli"
 	"log"
 	"os"

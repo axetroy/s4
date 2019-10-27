@@ -1,8 +1,8 @@
 package configuration
 
 import (
-	"github.com/axetroy/s4/src/grammar"
-	"github.com/axetroy/s4/src/host"
+	"github.com/axetroy/s4/core/grammar"
+	"github.com/axetroy/s4/core/host"
 	"io/ioutil"
 	"strings"
 )

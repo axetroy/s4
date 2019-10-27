@@ -1,7 +1,7 @@
 package configuration_test
 
 import (
-	"github.com/axetroy/s4/src/configuration"
+	"github.com/axetroy/s4/core/configuration"
 	"reflect"
 	"testing"
 )

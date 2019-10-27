@@ -1,7 +1,7 @@
 package grammar_test
 
 import (
-	"github.com/axetroy/s4/src/grammar"
+	"github.com/axetroy/s4/core/grammar"
 	"reflect"
 	"testing"
 )

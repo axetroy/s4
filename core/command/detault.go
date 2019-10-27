@@ -1,6 +1,6 @@
 package command
 
-import "github.com/axetroy/s4/src/runner"
+import "github.com/axetroy/s4/core/runner"
 
 func Default(configFile, password string, check bool) error {
 	r, err := runner.NewRunner(configFile)

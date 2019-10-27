@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/axetroy/s4/src/host"
+	"github.com/axetroy/s4/core/host"
 	"regexp"
 	"strings"
 )
