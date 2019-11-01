@@ -11,6 +11,7 @@ import (
 
 	"github.com/AlecAivazis/survey"
 	"github.com/axetroy/s4/core/configuration"
+	"github.com/axetroy/s4/core/grammar"
 	"github.com/axetroy/s4/core/ssh"
 	"github.com/axetroy/s4/core/variable"
 	"github.com/fatih/color"
@@ -97,52 +98,52 @@ func (r *Runner) Run(check bool) error {
 	for _, action := range r.Config.Actions {
 		r.Step++
 		switch action.Action {
-		case "VAR":
+		case grammar.ActionVAR:
 			if err := r.actionVar(action); err != nil {
 				return err
 			}
 			break
-		case "CD":
+		case grammar.ActionCD:
 			if err := r.actionCd(action); err != nil {
 				return err
 			}
 			break
-		case "BASH":
+		case grammar.ActionBASH:
 			if err := r.actionBash(action); err != nil {
 				return err
 			}
 			break
-		case "CMD":
+		case grammar.ActionCMD:
 			if err := r.actionCmd(action); err != nil {
 				return err
 			}
 			break
-		case "RUN":
+		case grammar.ActionRUN:
 			if err := r.actionRun(action); err != nil {
 				return err
 			}
 			break
-		case "MOVE":
+		case grammar.ActionMOVE:
 			if err := r.actionMove(action); err != nil {
 				return err
 			}
 			break
-		case "COPY":
+		case grammar.ActionCOPY:
 			if err := r.actionCopy(action); err != nil {
 				return err
 			}
 			break
-		case "DELETE":
+		case grammar.ActionDELETE:
 			if err := r.actionDelete(action); err != nil {
 				return err
 			}
 			break
-		case "UPLOAD":
+		case grammar.ActionUPLOAD:
 			if err := r.actionUpload(action); err != nil {
 				return err
 			}
 			break
-		case "DOWNLOAD":
+		case grammar.ActionDOWNLOAD:
 			if err := r.actionDownload(action); err != nil {
 				return err
 			}
