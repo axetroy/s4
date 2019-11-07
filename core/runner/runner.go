@@ -203,7 +203,13 @@ func (r *Runner) actionCd(action configuration.Action) error {
 
 	fmt.Printf("[step %d]: CD %s\n", r.Step, color.GreenString(dir))
 
-	r.Config.CWD = variable.Compile(dir, r.Config.Var)
+	cwd := variable.Compile(dir, r.Config.Var)
+
+	if path.IsAbs(cwd) {
+		r.Config.CWD = cwd
+	} else {
+		r.Config.CWD = path.Join(r.Config.CWD, cwd)
+	}
 
 	return nil
 }

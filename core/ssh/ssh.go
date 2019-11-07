@@ -4,16 +4,17 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"github.com/axetroy/s4/core/configuration"
-	"github.com/cheggaaa/pb/v3"
-	"github.com/pkg/sftp"
-	"golang.org/x/crypto/ssh"
 	"io"
 	"io/ioutil"
 	"net"
 	"os"
 	"path"
 	"strings"
+
+	"github.com/axetroy/s4/core/configuration"
+	"github.com/cheggaaa/pb/v3"
+	"github.com/pkg/sftp"
+	"golang.org/x/crypto/ssh"
 )
 
 type Client struct {
