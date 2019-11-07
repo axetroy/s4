@@ -50,7 +50,7 @@ func NewRunner(configFilepath string) (*Runner, error) {
 }
 
 func (r *Runner) Run(check bool) error {
-	client := ssh.NewSSH()
+	client := ssh.NewSSH(r.Config)
 	r.SSH = client
 
 	if r.Config.Host == "" {
@@ -77,7 +77,7 @@ func (r *Runner) Run(check bool) error {
 		r.Config.Password = password
 	}
 
-	if err := client.Connect(r.Config.Host, r.Config.Port, r.Config.Username, r.Config.Password); err != nil {
+	if err := client.Connect(); err != nil {
 		return err
 	}
 
@@ -342,7 +342,7 @@ func (r *Runner) actionRun(action configuration.Action) error {
 
 	command = variable.Compile(command, r.Config.Var)
 
-	if err := r.SSH.Run(command, ssh.RunOptions{Cwd: r.Config.CWD}); err != nil {
+	if err := r.SSH.Run(command); err != nil {
 		return err
 	}
 
@@ -398,7 +398,7 @@ func (r *Runner) actionVar(action configuration.Action) error {
 				r.Config.Var[Var.Key] = os.Getenv(Var.Value)
 			} else {
 				// get remote env
-				remoteEnvValue, err := r.SSH.Env(Var.Value, r.Config.Env)
+				remoteEnvValue, err := r.SSH.Env(Var.Value)
 
 				if err != nil {
 					return err
@@ -437,7 +437,7 @@ func (r *Runner) actionVar(action configuration.Action) error {
 				var stdoutBuf bytes.Buffer
 				var stderrBuf bytes.Buffer
 
-				err := r.SSH.RunWithCustomerIO(Var.Value, ssh.RunOptions{Cwd: r.Config.CWD}, &stdoutBuf, &stderrBuf)
+				err := r.SSH.RunRaw(Var.Value, &stdoutBuf, &stderrBuf)
 
 				if err != nil {
 					return err
