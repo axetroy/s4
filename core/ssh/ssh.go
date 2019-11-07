@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/axetroy/s4/core/configuration"
+	"github.com/axetroy/s4/core/util"
 	"github.com/cheggaaa/pb/v3"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
@@ -440,43 +441,21 @@ func (c *Client) Move(oldFilepath string, newFilepath string) error {
 }
 
 func (c *Client) Delete(files ...string) error {
-	cwd, err := c.sftpClient.Getwd()
-
-	if err != nil {
-		return err
-	}
-
 	for _, file := range files {
-		// prevent delete all system
-		if file == "/" || file == "" || file == "." || file == cwd {
-			fmt.Printf("igmore remove '%s'\n", file)
+		// Prevent the removal of dangerous system files
+		if util.IsLinuxBuildInPath(file) {
+			fmt.Printf("Prevent the removal of dangerous system file '%s'\n", file)
 			continue
 		}
 
-		paths := strings.Split(file, string(os.PathSeparator))
-
-		if len(paths) <= 2 {
-			fmt.Printf("igmore remove '%s'\n", file)
+		// if path not exist. then ignore error
+		if _, err := c.sftpClient.Stat(file); err != nil {
 			continue
 		}
 
-		stat, err := c.sftpClient.Stat(file)
-
-		if err != nil {
+		if err := c.sftpClient.Remove(file); err != nil {
 			return err
 		}
-
-		if stat.IsDir() {
-			fmt.Printf("igmore remove directory '%s'\n", file)
-			//if err := c.sftpClient.RemoveDirectory(file); err != nil {
-			//	return err
-			//}
-		} else {
-			if err := c.sftpClient.Remove(file); err != nil {
-				return err
-			}
-		}
-
 	}
 
 	return nil

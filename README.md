@@ -137,6 +137,8 @@ eg `CD /home/axetroy`
 
 If the directory does not exist, an error will be thrown
 
+This will affect all operations on the remote server, including upload/download/run commands, etc.
+
 </details>
 
 <details><summary>UPLOAD</summary>
@@ -181,7 +183,7 @@ eg `MOVE data.db data.db.bak`
 
 <details><summary>DELETE</summary>
 
-delete files at remote server, for security, directory will be ignored
+delete files at remote server, for security, Linux dangerous directories will be ignored
 
 eg `DELETE file1 file2`
 
