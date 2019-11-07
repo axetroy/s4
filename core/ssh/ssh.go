@@ -11,7 +11,6 @@ import (
 	"path"
 	"strings"
 
-	"github.com/axetroy/s4/core/configuration"
 	"github.com/axetroy/s4/core/util"
 	"github.com/cheggaaa/pb/v3"
 	"github.com/pkg/sftp"
@@ -19,32 +18,35 @@ import (
 )
 
 type Client struct {
-	config     *configuration.Configuration
 	sshClient  *ssh.Client
 	sftpClient *sftp.Client
 }
 
-func NewSSH(c *configuration.Configuration) *Client {
+type RunOptions struct {
+	Env map[string]string
+	Cwd string
+}
+
+func NewSSH() *Client {
 	return &Client{
-		config:     c,
 		sshClient:  nil,
 		sftpClient: nil,
 	}
 }
 
-func (c *Client) Connect() error {
+func (c *Client) Connect(host string, port string, username string, password string) error {
 	// connect to
 	sshConfig := &ssh.ClientConfig{
-		User: c.config.Username,
+		User: username,
 		Auth: []ssh.AuthMethod{
-			ssh.Password(c.config.Password),
+			ssh.Password(password),
 		},
 		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
 			return nil
 		},
 	}
 
-	addr := fmt.Sprintf("%s:%v", c.config.Host, c.config.Port)
+	addr := fmt.Sprintf("%s:%v", host, port)
 
 	sshClient, err := ssh.Dial("tcp", addr, sshConfig)
 
@@ -85,7 +87,8 @@ func (c *Client) Pwd() (string, error) {
 	return c.sftpClient.Getwd()
 }
 
-func (c *Client) Env(key string) (string, error) {
+// get environmental variable from remote server
+func (c *Client) Env(key string, env map[string]string) (string, error) {
 	command := fmt.Sprintf("echo $%s", key)
 
 	// Create a session. It is one session per command.
@@ -103,16 +106,11 @@ func (c *Client) Env(key string) (string, error) {
 	session.Stdout = &stdoutBuf
 	session.Stderr = &stderrBuf
 
-	var setEnvCommand []string
-
 	// set environmental variable before run
-	for key, value := range c.config.Env {
-		// export KEY=VALUE
-		setEnvCommand = append(setEnvCommand, fmt.Sprintf("export %s=%s;", key, value))
-	}
-
-	if len(setEnvCommand) != 0 {
-		command = strings.Join(setEnvCommand, " ") + " " + command
+	for key, value := range env {
+		if err := session.Setenv(key, value); err != nil {
+			return "", err
+		}
 	}
 
 	if err = session.Run(command); err != nil {
@@ -122,7 +120,7 @@ func (c *Client) Env(key string) (string, error) {
 	return strings.TrimSpace(stdoutBuf.String()), nil
 }
 
-func (c *Client) RunRaw(command string, stdout *bytes.Buffer, stderr *bytes.Buffer) error {
+func (c *Client) RunWithCustomerIO(command string, options RunOptions, stdout *bytes.Buffer, stderr *bytes.Buffer) error {
 	// Create a session. It is one session per command.
 	session, err := c.sshClient.NewSession()
 
@@ -135,16 +133,15 @@ func (c *Client) RunRaw(command string, stdout *bytes.Buffer, stderr *bytes.Buff
 	session.Stdout = stdout
 	session.Stderr = stderr
 
-	var setEnvCommand []string
-
-	// set environmental variable before run
-	for key, value := range c.config.Env {
-		// export KEY=VALUE
-		setEnvCommand = append(setEnvCommand, fmt.Sprintf("export %s=%s;", key, value))
+	if options.Cwd != "" {
+		command = "cd " + options.Cwd + " && " + command
 	}
 
-	if len(setEnvCommand) != 0 {
-		command = strings.Join(setEnvCommand, " ") + " " + command
+	// set environmental variable before run
+	for key, value := range options.Env {
+		if err := session.Setenv(key, value); err != nil {
+			return err
+		}
 	}
 
 	if err = session.Run(command); err != nil {
@@ -154,7 +151,7 @@ func (c *Client) RunRaw(command string, stdout *bytes.Buffer, stderr *bytes.Buff
 	return nil
 }
 
-func (c *Client) Run(command string) error {
+func (c *Client) Run(command string, options RunOptions) error {
 	// Create a session. It is one session per command.
 	session, err := c.sshClient.NewSession()
 
@@ -162,9 +159,7 @@ func (c *Client) Run(command string) error {
 		return err
 	}
 
-	defer func() {
-		_ = session.Close()
-	}()
+	defer session.Close()
 
 	sessionStdOut, err := session.StdoutPipe()
 
@@ -182,20 +177,15 @@ func (c *Client) Run(command string) error {
 
 	go io.Copy(os.Stdout, sessionStdErr)
 
-	if c.config.CWD != "" {
-		command = "cd " + c.config.CWD + " && " + command
+	if options.Cwd != "" {
+		command = "cd " + options.Cwd + " && " + command
 	}
-
-	var setEnvCommand []string
 
 	// set environmental variable before run
-	for key, value := range c.config.Env {
-		// export KEY=VALUE
-		setEnvCommand = append(setEnvCommand, fmt.Sprintf("export %s=%s;", key, value))
-	}
-
-	if len(setEnvCommand) != 0 {
-		command = strings.Join(setEnvCommand, " ") + " " + command
+	for key, value := range options.Env {
+		if err := session.Setenv(key, value); err != nil {
+			return err
+		}
 	}
 
 	if err = session.Run(command); err != nil {
