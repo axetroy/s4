@@ -434,7 +434,7 @@ func (r *Runner) actionVar(action configuration.Action) error {
 				var stdoutBuf bytes.Buffer
 				var stderrBuf bytes.Buffer
 
-				err := r.ssh.RunRaw(Var.Value, ssh.Options{
+				err := r.ssh.RunWithCustomIO(Var.Value, ssh.Options{
 					CWD: r.config.CWD,
 					Env: r.config.Env,
 				}, &stdoutBuf, &stderrBuf)

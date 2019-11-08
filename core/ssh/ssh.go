@@ -27,6 +27,23 @@ type Options struct {
 	Env map[string]string `json:"env"`
 }
 
+func setEnvForCommand(command string, env map[string]string) (newCommand string) {
+	var setEnvCommand []string
+
+	for key, value := range env {
+		// export KEY=VALUE
+		setEnvCommand = append(setEnvCommand, fmt.Sprintf("export %s=%s;", key, value))
+	}
+
+	if len(setEnvCommand) != 0 {
+		newCommand = strings.Join(setEnvCommand, " ") + " " + command
+	} else {
+		newCommand = command
+	}
+
+	return
+}
+
 func NewSSH() *Client {
 	return &Client{
 		sshClient:  nil,
@@ -124,7 +141,7 @@ func (c *Client) Env(key string, options Options) (string, error) {
 	return strings.TrimSpace(stdoutBuf.String()), nil
 }
 
-func (c *Client) RunRaw(command string, options Options, stdout *bytes.Buffer, stderr *bytes.Buffer) error {
+func (c *Client) RunWithCustomIO(command string, options Options, stdout *bytes.Buffer, stderr *bytes.Buffer) error {
 	// Create a session. It is one session per command.
 	session, err := c.sshClient.NewSession()
 
@@ -137,17 +154,11 @@ func (c *Client) RunRaw(command string, options Options, stdout *bytes.Buffer, s
 	session.Stdout = stdout
 	session.Stderr = stderr
 
-	var setEnvCommand []string
-
-	// set environmental variable before run
-	for key, value := range options.Env {
-		// export KEY=VALUE
-		setEnvCommand = append(setEnvCommand, fmt.Sprintf("export %s=%s;", key, value))
+	if options.CWD != "" {
+		command = "cd " + options.CWD + " && " + command
 	}
 
-	if len(setEnvCommand) != 0 {
-		command = strings.Join(setEnvCommand, " ") + " " + command
-	}
+	command = setEnvForCommand(command, options.Env)
 
 	if err = session.Run(command); err != nil {
 		return err
@@ -164,41 +175,26 @@ func (c *Client) Run(command string, options Options) error {
 		return err
 	}
 
-	defer func() {
-		_ = session.Close()
-	}()
+	defer session.Close()
 
-	sessionStdOut, err := session.StdoutPipe()
-
-	if err != nil {
+	if sessionStdOut, err := session.StdoutPipe(); err != nil {
 		return err
+	} else {
+		go io.Copy(os.Stdout, sessionStdOut)
+
 	}
 
-	go io.Copy(os.Stdout, sessionStdOut)
-
-	sessionStdErr, err := session.StderrPipe()
-
-	if err != nil {
+	if sessionStdErr, err := session.StderrPipe(); err != nil {
 		return err
+	} else {
+		go io.Copy(os.Stdout, sessionStdErr)
 	}
-
-	go io.Copy(os.Stdout, sessionStdErr)
 
 	if options.CWD != "" {
 		command = "cd " + options.CWD + " && " + command
 	}
 
-	var setEnvCommand []string
-
-	// set environmental variable before run
-	for key, value := range options.Env {
-		// export KEY=VALUE
-		setEnvCommand = append(setEnvCommand, fmt.Sprintf("export %s=%s;", key, value))
-	}
-
-	if len(setEnvCommand) != 0 {
-		command = strings.Join(setEnvCommand, " ") + " " + command
-	}
+	command = setEnvForCommand(command, options.Env)
 
 	if err = session.Run(command); err != nil {
 		return err
