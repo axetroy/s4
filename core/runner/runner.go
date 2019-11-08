@@ -241,10 +241,13 @@ func (r *Runner) actionCmd(action configuration.Action) error {
 }
 
 func (r *Runner) actionCopy(action configuration.Action) error {
-	sourceFilepath := variable.Compile(action.Arguments[0], r.Config.Var)
-	destinationFilepath := variable.Compile(action.Arguments[1], r.Config.Var)
+	sourceFilepath := action.Arguments[0]
+	destinationFilepath := action.Arguments[1]
 
 	fmt.Printf("[step %d]: COPY %s to %s\n", r.Step, color.YellowString(sourceFilepath), color.GreenString(destinationFilepath))
+
+	sourceFilepath = variable.Compile(sourceFilepath, r.Config.Var)
+	destinationFilepath = variable.Compile(destinationFilepath, r.Config.Var)
 
 	if path.IsAbs(sourceFilepath) == false {
 		sourceFilepath = path.Join(r.Config.CWD, sourceFilepath)
@@ -283,10 +286,13 @@ func (r *Runner) actionDelete(action configuration.Action) error {
 }
 
 func (r *Runner) actionDownload(action configuration.Action) error {
-	sourceFiles := variable.CompileArray(action.Arguments[:len(action.Arguments)-1], r.Config.Var)
-	destinationDir := variable.Compile(action.Arguments[len(action.Arguments)-1], r.Config.Var)
+	sourceFiles := action.Arguments[:len(action.Arguments)-1]
+	destinationDir := action.Arguments[len(action.Arguments)-1]
 
 	fmt.Printf("[step %d]: DOWNLOAD %s to %s\n", r.Step, color.YellowString(strings.Join(sourceFiles, ", ")), color.GreenString(destinationDir))
+
+	sourceFiles = variable.CompileArray(sourceFiles, r.Config.Var)
+	destinationDir = variable.Compile(destinationDir, r.Config.Var)
 
 	if path.IsAbs(destinationDir) == false {
 		destinationDir = path.Join(r.Cwd, destinationDir)
@@ -315,10 +321,13 @@ func (r *Runner) actionDownload(action configuration.Action) error {
 }
 
 func (r *Runner) actionMove(action configuration.Action) error {
-	sourceFilepath := variable.Compile(action.Arguments[0], r.Config.Var)
-	destinationFilepath := variable.Compile(action.Arguments[1], r.Config.Var)
+	sourceFilepath := action.Arguments[0]
+	destinationFilepath := action.Arguments[1]
 
 	fmt.Printf("[step %d]: MOVE %s to %s\n", r.Step, color.YellowString(sourceFilepath), color.GreenString(destinationFilepath))
+
+	sourceFilepath = variable.Compile(sourceFilepath, r.Config.Var)
+	destinationFilepath = variable.Compile(destinationFilepath, r.Config.Var)
 
 	if path.IsAbs(sourceFilepath) == false {
 		sourceFilepath = path.Join(r.Config.CWD, sourceFilepath)
@@ -350,10 +359,13 @@ func (r *Runner) actionRun(action configuration.Action) error {
 }
 
 func (r *Runner) actionUpload(action configuration.Action) error {
-	sourceFiles := variable.CompileArray(action.Arguments[:len(action.Arguments)-1], r.Config.Var)
-	destinationDir := variable.Compile(action.Arguments[len(action.Arguments)-1], r.Config.Var)
+	sourceFiles := action.Arguments[:len(action.Arguments)-1]
+	destinationDir := action.Arguments[len(action.Arguments)-1]
 
 	fmt.Printf("[step %d]: UPLOAD %s to %s\n", r.Step, color.YellowString(strings.Join(sourceFiles, ", ")), color.GreenString(destinationDir))
+
+	sourceFiles = variable.CompileArray(sourceFiles, r.Config.Var)
+	destinationDir = variable.Compile(destinationDir, r.Config.Var)
 
 	if path.IsAbs(destinationDir) == false {
 		if r.Config.CWD != "" {

@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/axetroy/s4/core/host"
 	"regexp"
 	"strings"
+
+	"github.com/axetroy/s4/core/host"
 )
 
 type Token struct {

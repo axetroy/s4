@@ -1,10 +1,11 @@
 package configuration
 
 import (
-	"github.com/axetroy/s4/core/grammar"
-	"github.com/axetroy/s4/core/host"
 	"io/ioutil"
 	"strings"
+
+	"github.com/axetroy/s4/core/grammar"
+	"github.com/axetroy/s4/core/host"
 )
 
 type Action struct {

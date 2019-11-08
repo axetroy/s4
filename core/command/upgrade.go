@@ -5,8 +5,6 @@ import (
 	"compress/gzip"
 	"encoding/json"
 	"fmt"
-	"github.com/cheggaaa/pb/v3"
-	"github.com/fatih/color"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -14,6 +12,9 @@ import (
 	"os/exec"
 	"path"
 	"runtime"
+
+	"github.com/cheggaaa/pb/v3"
+	"github.com/fatih/color"
 )
 
 func Upgrade() error {
