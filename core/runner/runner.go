@@ -86,7 +86,7 @@ func (r *Runner) resolveRemotePaths(remotePaths []string) []string {
 }
 
 func (r *Runner) Run(check bool) error {
-	client := ssh.NewSSH(r.config)
+	client := ssh.NewSSH()
 	r.ssh = client
 
 	if r.config.Host == "" {
@@ -113,7 +113,7 @@ func (r *Runner) Run(check bool) error {
 		r.config.Password = password
 	}
 
-	if err := client.Connect(); err != nil {
+	if err := client.Connect(r.config.Host, r.config.Port, r.config.Username, r.config.Password); err != nil {
 		return err
 	}
 
@@ -347,7 +347,10 @@ func (r *Runner) actionRun(action configuration.Action) error {
 
 	command = variable.Compile(command, r.config.Var)
 
-	if err := r.ssh.Run(command); err != nil {
+	if err := r.ssh.Run(command, ssh.Options{
+		CWD: r.config.CWD,
+		Env: r.config.Env,
+	}); err != nil {
 		return err
 	}
 
@@ -392,7 +395,7 @@ func (r *Runner) actionVar(action configuration.Action) error {
 				r.config.Var[Var.Key] = os.Getenv(Var.Value)
 			} else {
 				// get remote env
-				remoteEnvValue, err := r.ssh.Env(Var.Value)
+				remoteEnvValue, err := r.ssh.Env(Var.Value, ssh.Options{Env: r.config.Env})
 
 				if err != nil {
 					return err
@@ -431,7 +434,10 @@ func (r *Runner) actionVar(action configuration.Action) error {
 				var stdoutBuf bytes.Buffer
 				var stderrBuf bytes.Buffer
 
-				err := r.ssh.RunRaw(Var.Value, &stdoutBuf, &stderrBuf)
+				err := r.ssh.RunRaw(Var.Value, ssh.Options{
+					CWD: r.config.CWD,
+					Env: r.config.Env,
+				}, &stdoutBuf, &stderrBuf)
 
 				if err != nil {
 					return err
