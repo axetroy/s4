@@ -85,6 +85,10 @@ func (r *Runner) resolveRemotePaths(remotePaths []string) []string {
 	return paths
 }
 
+func (r *Runner) SetPassword(password string) {
+	r.config.Password = password
+}
+
 func (r *Runner) Run(check bool) error {
 	client := ssh.NewSSH()
 	r.ssh = client

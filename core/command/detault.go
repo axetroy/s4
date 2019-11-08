@@ -10,7 +10,7 @@ func Default(configFile, password string, check bool) error {
 	}
 
 	if password != "" {
-		r.Config.Password = password
+		r.SetPassword(password)
 	}
 
 	if err := r.Run(check); err != nil {
