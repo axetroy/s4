@@ -18,10 +18,10 @@ import (
 )
 
 type Runner struct {
-	Config *configuration.Configuration // the configuration
-	SSH    *ssh.Client                  // current ssh client
-	Step   int                          // current step
-	Cwd    string                       // current working dir at local
+	config *configuration.Configuration // the configuration
+	ssh    *ssh.Client                  // current ssh client
+	step   int                          // current step
+	cwd    string                       // current working dir at local
 }
 
 func NewRunner(configFilepath string) (*Runner, error) {
@@ -44,26 +44,62 @@ func NewRunner(configFilepath string) (*Runner, error) {
 	}
 
 	return &Runner{
-		Config: config,
-		Step:   1,
+		config: config,
+		step:   1,
 	}, nil
 }
 
-func (r *Runner) Run(check bool) error {
-	client := ssh.NewSSH(r.Config)
-	r.SSH = client
+func (r *Runner) resolveLocalPath(localPath string) string {
+	if path.IsAbs(localPath) {
+		return localPath
+	} else {
+		return path.Join(r.cwd, localPath)
+	}
+}
 
-	if r.Config.Host == "" {
+func (r *Runner) resolveLocalPaths(localPaths []string) []string {
+	var paths []string
+
+	for _, remotePath := range localPaths {
+		paths = append(paths, r.resolveLocalPath(remotePath))
+	}
+
+	return paths
+}
+
+func (r *Runner) resolveRemotePath(remotePath string) string {
+	if path.IsAbs(remotePath) {
+		return remotePath
+	} else {
+		return path.Join(r.config.CWD, remotePath)
+	}
+}
+
+func (r *Runner) resolveRemotePaths(remotePaths []string) []string {
+	var paths []string
+
+	for _, remotePath := range remotePaths {
+		paths = append(paths, r.resolveRemotePath(remotePath))
+	}
+
+	return paths
+}
+
+func (r *Runner) Run(check bool) error {
+	client := ssh.NewSSH(r.config)
+	r.ssh = client
+
+	if r.config.Host == "" {
 		return errors.New("`CONNECT` field required")
 	}
 
-	fmt.Printf("[step %v]: CONNECT %s\n", r.Step, color.GreenString(fmt.Sprintf("%s@%s:%s", r.Config.Username, r.Config.Host, r.Config.Port)))
+	fmt.Printf("[step %v]: CONNECT %s\n", r.step, color.GreenString(fmt.Sprintf("%s@%s:%s", r.config.Username, r.config.Host, r.config.Port)))
 
 	if check {
 		return nil
 	}
 
-	if r.Config.Password == "" {
+	if r.config.Password == "" {
 		// ask password for remote server
 		password := ""
 		prompt := &survey.Password{
@@ -74,7 +110,7 @@ func (r *Runner) Run(check bool) error {
 			return err
 		}
 
-		r.Config.Password = password
+		r.config.Password = password
 	}
 
 	if err := client.Connect(); err != nil {
@@ -86,17 +122,17 @@ func (r *Runner) Run(check bool) error {
 	if cwd, err := os.Getwd(); err != nil {
 		return err
 	} else {
-		r.Cwd = cwd
+		r.cwd = cwd
 	}
 
 	if remoteCwd, err := client.Pwd(); err != nil {
 		return err
 	} else {
-		r.Config.CWD = remoteCwd
+		r.config.CWD = remoteCwd
 	}
 
-	for _, action := range r.Config.Actions {
-		r.Step++
+	for _, action := range r.config.Actions {
+		r.step++
 		switch action.Action {
 		case grammar.ActionVAR:
 			if err := r.actionVar(action); err != nil {
@@ -153,9 +189,9 @@ func (r *Runner) Run(check bool) error {
 		}
 	}
 
-	r.Step++
+	r.step++
 
-	fmt.Printf("[step %d]: %s\n", r.Step, color.GreenString("done!"))
+	fmt.Printf("[step %d]: %s\n", r.step, color.GreenString("done!"))
 
 	return nil
 }
@@ -163,7 +199,7 @@ func (r *Runner) Run(check bool) error {
 func (r *Runner) actionBash(action configuration.Action) error {
 	command := strings.Join(action.Arguments, " ")
 
-	fmt.Printf("[step %d]: BASH %s\n", r.Step, color.YellowString(command))
+	fmt.Printf("[step %d]: BASH %s\n", r.step, color.YellowString(command))
 
 	bashPath := os.Getenv("SHELL")
 
@@ -180,7 +216,7 @@ func (r *Runner) actionBash(action configuration.Action) error {
 		}
 	}
 
-	command = variable.Compile(command, r.Config.Var)
+	command = variable.Compile(command, r.config.Var)
 
 	c := exec.Command(bashPath, "-c", command)
 
@@ -201,28 +237,20 @@ func (r *Runner) actionBash(action configuration.Action) error {
 func (r *Runner) actionCd(action configuration.Action) error {
 	dir := strings.Join(action.Arguments, " ")
 
-	fmt.Printf("[step %d]: CD %s\n", r.Step, color.GreenString(dir))
+	fmt.Printf("[step %d]: CD %s\n", r.step, color.GreenString(dir))
 
-	cwd := variable.Compile(dir, r.Config.Var)
+	cwd := variable.Compile(dir, r.config.Var)
 
-	if path.IsAbs(cwd) {
-		r.Config.CWD = cwd
-	} else {
-		r.Config.CWD = path.Join(r.Config.CWD, cwd)
-	}
+	r.config.CWD = r.resolveRemotePath(cwd)
 
 	return nil
 }
 
 func (r *Runner) actionCmd(action configuration.Action) error {
-	fmt.Printf("[step %d]: CMD %s\n", r.Step, color.YellowString(fmt.Sprintf("%v", action.Arguments)))
+	fmt.Printf("[step %d]: CMD %s\n", r.step, color.YellowString(fmt.Sprintf("%v", action.Arguments)))
 
-	command := variable.Compile(action.Arguments[0], r.Config.Var)
-	args := variable.CompileArray(action.Arguments[1:], r.Config.Var)
-
-	if _, err := exec.LookPath(command); err != nil {
-		fmt.Printf("didn't find '%s' executable\n", command)
-	}
+	command := variable.Compile(action.Arguments[0], r.config.Var)
+	args := variable.CompileArray(action.Arguments[1:], r.config.Var)
 
 	c := exec.Command(command, args...)
 
@@ -244,41 +272,28 @@ func (r *Runner) actionCopy(action configuration.Action) error {
 	sourceFilepath := action.Arguments[0]
 	destinationFilepath := action.Arguments[1]
 
-	fmt.Printf("[step %d]: COPY %s to %s\n", r.Step, color.YellowString(sourceFilepath), color.GreenString(destinationFilepath))
+	fmt.Printf("[step %d]: COPY %s to %s\n", r.step, color.YellowString(sourceFilepath), color.GreenString(destinationFilepath))
 
-	sourceFilepath = variable.Compile(sourceFilepath, r.Config.Var)
-	destinationFilepath = variable.Compile(destinationFilepath, r.Config.Var)
+	sourceFilepath = variable.Compile(sourceFilepath, r.config.Var)
+	destinationFilepath = variable.Compile(destinationFilepath, r.config.Var)
 
-	if path.IsAbs(sourceFilepath) == false {
-		sourceFilepath = path.Join(r.Config.CWD, sourceFilepath)
-	}
+	sourceFilepath = r.resolveRemotePath(sourceFilepath)
+	destinationFilepath = r.resolveRemotePath(destinationFilepath)
 
-	if path.IsAbs(destinationFilepath) == false {
-		destinationFilepath = path.Join(r.Config.CWD, destinationFilepath)
-	}
-
-	if err := r.SSH.Copy(sourceFilepath, destinationFilepath); err != nil {
+	if err := r.ssh.Copy(sourceFilepath, destinationFilepath); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (r *Runner) actionDelete(action configuration.Action) error {
-	fmt.Printf("[step %v]: DELETE %s\n", r.Step, color.YellowString(strings.Join(action.Arguments, ",")))
+	fmt.Printf("[step %v]: DELETE %s\n", r.step, color.YellowString(strings.Join(action.Arguments, ",")))
 
-	args := variable.CompileArray(action.Arguments, r.Config.Var)
+	args := variable.CompileArray(action.Arguments, r.config.Var)
 
-	var files []string
+	files := r.resolveRemotePaths(args)
 
-	for _, file := range args {
-		if path.IsAbs(file) == false {
-			file = path.Join(r.Config.CWD, file)
-		}
-
-		files = append(files, file)
-	}
-
-	if err := r.SSH.Delete(files...); err != nil {
+	if err := r.ssh.Delete(files...); err != nil {
 		return err
 	}
 
@@ -289,30 +304,16 @@ func (r *Runner) actionDownload(action configuration.Action) error {
 	sourceFiles := action.Arguments[:len(action.Arguments)-1]
 	destinationDir := action.Arguments[len(action.Arguments)-1]
 
-	fmt.Printf("[step %d]: DOWNLOAD %s to %s\n", r.Step, color.YellowString(strings.Join(sourceFiles, ", ")), color.GreenString(destinationDir))
+	fmt.Printf("[step %d]: DOWNLOAD %s to %s\n", r.step, color.YellowString(strings.Join(sourceFiles, ", ")), color.GreenString(destinationDir))
 
-	sourceFiles = variable.CompileArray(sourceFiles, r.Config.Var)
-	destinationDir = variable.Compile(destinationDir, r.Config.Var)
+	sourceFiles = variable.CompileArray(sourceFiles, r.config.Var)
+	destinationDir = variable.Compile(destinationDir, r.config.Var)
 
-	if path.IsAbs(destinationDir) == false {
-		destinationDir = path.Join(r.Cwd, destinationDir)
-	}
+	sourceFiles = r.resolveRemotePaths(sourceFiles)
+	destinationDir = r.resolveLocalPath(destinationDir)
 
 	for _, filePath := range sourceFiles {
-
-		if filePath == "" {
-			continue
-		}
-
-		if path.IsAbs(filePath) == false {
-			if r.Config.CWD != "" {
-				filePath = path.Join(r.Config.CWD, filePath)
-			}
-		}
-
-		err := r.SSH.Download(filePath, destinationDir)
-
-		if err != nil {
+		if err := r.ssh.Download(filePath, destinationDir); err != nil {
 			return err
 		}
 	}
@@ -324,20 +325,15 @@ func (r *Runner) actionMove(action configuration.Action) error {
 	sourceFilepath := action.Arguments[0]
 	destinationFilepath := action.Arguments[1]
 
-	fmt.Printf("[step %d]: MOVE %s to %s\n", r.Step, color.YellowString(sourceFilepath), color.GreenString(destinationFilepath))
+	fmt.Printf("[step %d]: MOVE %s to %s\n", r.step, color.YellowString(sourceFilepath), color.GreenString(destinationFilepath))
 
-	sourceFilepath = variable.Compile(sourceFilepath, r.Config.Var)
-	destinationFilepath = variable.Compile(destinationFilepath, r.Config.Var)
+	sourceFilepath = variable.Compile(sourceFilepath, r.config.Var)
+	destinationFilepath = variable.Compile(destinationFilepath, r.config.Var)
 
-	if path.IsAbs(sourceFilepath) == false {
-		sourceFilepath = path.Join(r.Config.CWD, sourceFilepath)
-	}
+	sourceFilepath = r.resolveRemotePath(sourceFilepath)
+	destinationFilepath = r.resolveRemotePath(destinationFilepath)
 
-	if path.IsAbs(destinationFilepath) == false {
-		destinationFilepath = path.Join(r.Config.CWD, destinationFilepath)
-	}
-
-	if err := r.SSH.Move(sourceFilepath, destinationFilepath); err != nil {
+	if err := r.ssh.Move(sourceFilepath, destinationFilepath); err != nil {
 		return err
 	}
 
@@ -347,11 +343,11 @@ func (r *Runner) actionMove(action configuration.Action) error {
 func (r *Runner) actionRun(action configuration.Action) error {
 	command := strings.Join(action.Arguments, " ")
 
-	fmt.Printf("[step %d]: RUN %s\n", r.Step, color.YellowString(command))
+	fmt.Printf("[step %d]: RUN %s\n", r.step, color.YellowString(command))
 
-	command = variable.Compile(command, r.Config.Var)
+	command = variable.Compile(command, r.config.Var)
 
-	if err := r.SSH.Run(command); err != nil {
+	if err := r.ssh.Run(command); err != nil {
 		return err
 	}
 
@@ -362,30 +358,16 @@ func (r *Runner) actionUpload(action configuration.Action) error {
 	sourceFiles := action.Arguments[:len(action.Arguments)-1]
 	destinationDir := action.Arguments[len(action.Arguments)-1]
 
-	fmt.Printf("[step %d]: UPLOAD %s to %s\n", r.Step, color.YellowString(strings.Join(sourceFiles, ", ")), color.GreenString(destinationDir))
+	fmt.Printf("[step %d]: UPLOAD %s to %s\n", r.step, color.YellowString(strings.Join(sourceFiles, ", ")), color.GreenString(destinationDir))
 
-	sourceFiles = variable.CompileArray(sourceFiles, r.Config.Var)
-	destinationDir = variable.Compile(destinationDir, r.Config.Var)
+	sourceFiles = variable.CompileArray(sourceFiles, r.config.Var)
+	destinationDir = variable.Compile(destinationDir, r.config.Var)
 
-	if path.IsAbs(destinationDir) == false {
-		if r.Config.CWD != "" {
-			destinationDir = path.Join(r.Config.CWD, destinationDir)
-		}
-	}
+	sourceFiles = r.resolveLocalPaths(sourceFiles)
+	destinationDir = r.resolveRemotePath(destinationDir)
 
 	for _, filePath := range sourceFiles {
-
-		if filePath == "" {
-			continue
-		}
-
-		if path.IsAbs(filePath) == false {
-			filePath = path.Join(r.Cwd, filePath)
-		}
-
-		err := r.SSH.Upload(filePath, destinationDir)
-
-		if err != nil {
+		if err := r.ssh.Upload(filePath, destinationDir); err != nil {
 			return err
 		}
 	}
@@ -395,28 +377,28 @@ func (r *Runner) actionUpload(action configuration.Action) error {
 
 func (r *Runner) actionVar(action configuration.Action) error {
 	value := strings.Join(action.Arguments, " ")
-	fmt.Printf("[step %d]: VAR %s\n", r.Step, color.GreenString(value))
+	fmt.Printf("[step %d]: VAR %s\n", r.step, color.GreenString(value))
 
 	if Var, err := variable.Parse(value); err != nil {
 		return err
 	} else {
 		switch Var.Type {
 		case variable.TypeLiteral:
-			r.Config.Var[Var.Key] = Var.Value
+			r.config.Var[Var.Key] = Var.Value
 			break
 		case variable.TypeEnv:
 			if Var.Remote == false {
 				// get local env
-				r.Config.Var[Var.Key] = os.Getenv(Var.Value)
+				r.config.Var[Var.Key] = os.Getenv(Var.Value)
 			} else {
 				// get remote env
-				remoteEnvValue, err := r.SSH.Env(Var.Value)
+				remoteEnvValue, err := r.ssh.Env(Var.Value)
 
 				if err != nil {
 					return err
 				}
 
-				r.Config.Var[Var.Key] = remoteEnvValue
+				r.config.Var[Var.Key] = remoteEnvValue
 			}
 			break
 		case variable.TypeCommand:
@@ -443,21 +425,21 @@ func (r *Runner) actionVar(action configuration.Action) error {
 					return errors.New(fmt.Sprintf("run command '%s' fail.", Var.Value))
 				}
 
-				r.Config.Var[Var.Key] = strings.TrimSpace(stdoutBuf.String())
+				r.config.Var[Var.Key] = strings.TrimSpace(stdoutBuf.String())
 			} else {
 				// execute command at remote
 				var stdoutBuf bytes.Buffer
 				var stderrBuf bytes.Buffer
 
-				err := r.SSH.RunRaw(Var.Value, &stdoutBuf, &stderrBuf)
+				err := r.ssh.RunRaw(Var.Value, &stdoutBuf, &stderrBuf)
 
 				if err != nil {
 					return err
 				}
 
-				r.Config.Var[Var.Key] = strings.TrimSpace(stdoutBuf.String())
+				r.config.Var[Var.Key] = strings.TrimSpace(stdoutBuf.String())
 
-				fmt.Println(r.Config.Var[Var.Key])
+				fmt.Println(r.config.Var[Var.Key])
 			}
 			break
 		}
