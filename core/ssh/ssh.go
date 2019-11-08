@@ -105,22 +105,18 @@ func (c *Client) Connect(host, port, username, password string) error {
 
 	addr := fmt.Sprintf("%s:%v", host, port)
 
-	sshClient, err := ssh.Dial("tcp", addr, sshConfig)
-
-	if err != nil {
+	if sshClient, err := ssh.Dial("tcp", addr, sshConfig); err != nil {
 		return err
+	} else {
+		c.sshClient = sshClient
+
+		// create sftp client
+		if sftpClient, err := sftp.NewClient(sshClient); err != nil {
+			return err
+		} else {
+			c.sftpClient = sftpClient
+		}
 	}
-
-	c.sshClient = sshClient
-
-	// create sftp client
-	sftpClient, err := sftp.NewClient(sshClient)
-
-	if err != nil {
-		return err
-	}
-
-	c.sftpClient = sftpClient
 
 	return nil
 }
@@ -162,17 +158,7 @@ func (c *Client) Env(key string, options Options) (string, error) {
 	session.Stdout = &stdoutBuf
 	session.Stderr = &stderrBuf
 
-	var setEnvCommand []string
-
-	// set environmental variable before run
-	for key, value := range options.Env {
-		// export KEY=VALUE
-		setEnvCommand = append(setEnvCommand, fmt.Sprintf("export %s=%s;", key, value))
-	}
-
-	if len(setEnvCommand) != 0 {
-		command = strings.Join(setEnvCommand, " ") + " " + command
-	}
+	command = setEnvForCommand(command, options.Env)
 
 	if err = session.Run(command); err != nil {
 		return "", err
