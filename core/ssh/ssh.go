@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
+	"os/exec"
 	"path"
 	"strings"
 
@@ -193,6 +194,56 @@ func (c *Client) RunWithCustomIO(command string, options Options, stdout *bytes.
 	return nil
 }
 
+// TODO: not use yet
+func (c *Client) RunWithCommandPipe(command string, commands []string, options Options) (err error) {
+	// Create a session. It is one session per command.
+	session, err := c.sshClient.NewSession()
+
+	if err != nil {
+		return err
+	}
+
+	defer session.Close()
+
+	cmd := exec.Command(commands[0], commands[1:]...)
+
+	if sessionStdOut, err := session.StdoutPipe(); err != nil {
+		return err
+	} else {
+		if cmdStdin, err := cmd.StdinPipe(); err != nil {
+			return err
+		} else {
+			go io.Copy(cmdStdin, sessionStdOut)
+		}
+	}
+
+	if sessionStdErr, err := session.StderrPipe(); err != nil {
+		return err
+	} else {
+		if cmdStdin, err := cmd.StdinPipe(); err != nil {
+			return err
+		} else {
+			go io.Copy(cmdStdin, sessionStdErr)
+		}
+	}
+
+	if options.CWD != "" {
+		command = "cd " + options.CWD + " && " + command
+	}
+
+	command = setEnvForCommand(command, options.Env)
+
+	go func() {
+		err = session.Run(command)
+	}()
+
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (c *Client) Run(command string, options Options) error {
 	// Create a session. It is one session per command.
 	session, err := c.sshClient.NewSession()
@@ -207,7 +258,6 @@ func (c *Client) Run(command string, options Options) error {
 		return err
 	} else {
 		go io.Copy(os.Stdout, sessionStdOut)
-
 	}
 
 	if sessionStdErr, err := session.StderrPipe(); err != nil {
