@@ -18,13 +18,13 @@ import (
 )
 
 type Runner struct {
-	ssh    *ssh.Client     // current ssh client
-	step   int             // current step
-	cwd    string          // current working dir at local
-	tokens []grammar.Token // token from parsing
-	CWD    string
-	Env    map[string]string
-	Var    map[string]string
+	ssh       *ssh.Client       // current ssh client
+	step      int               // current step
+	cwdLocal  string            // current working dir at local
+	tokens    []grammar.Token   // token from parsing
+	cwdRemote string            // current remote working dir
+	env       map[string]string // env for remote
+	Var       map[string]string // var
 }
 
 func NewRunner(configFilepath string) (*Runner, error) {
@@ -54,7 +54,7 @@ func NewRunner(configFilepath string) (*Runner, error) {
 
 	return &Runner{
 		tokens: tokens,
-		Env:    map[string]string{},
+		env:    map[string]string{},
 		Var:    map[string]string{},
 	}, nil
 }
@@ -71,7 +71,7 @@ func (r *Runner) resolveLocalPath(localPath string) string {
 	if path.IsAbs(localPath) {
 		return localPath
 	} else {
-		return path.Join(r.cwd, localPath)
+		return path.Join(r.cwdLocal, localPath)
 	}
 }
 
@@ -89,7 +89,7 @@ func (r *Runner) resolveRemotePath(remotePath string) string {
 	if path.IsAbs(remotePath) {
 		return remotePath
 	} else {
-		return path.Join(r.CWD, remotePath)
+		return path.Join(r.cwdRemote, remotePath)
 	}
 }
 
@@ -154,13 +154,13 @@ func (r *Runner) Run() error {
 			if cwd, err := os.Getwd(); err != nil {
 				return err
 			} else {
-				r.cwd = cwd
+				r.cwdLocal = cwd
 			}
 
 			if remoteCwd, err := r.ssh.Pwd(); err != nil {
 				return err
 			} else {
-				r.CWD = remoteCwd
+				r.cwdRemote = remoteCwd
 			}
 
 			break
@@ -280,7 +280,7 @@ func (r *Runner) actionCd(params grammar.NodeCd) error {
 
 	cwd := variable.Compile(dir, r.Var)
 
-	r.CWD = r.resolveRemotePath(cwd)
+	r.cwdRemote = r.resolveRemotePath(cwd)
 
 	return nil
 }
@@ -407,8 +407,8 @@ func (r *Runner) actionRun(params grammar.NodeBash) error {
 	command = variable.Compile(command, r.Var)
 
 	if err := r.ssh.Run(command, ssh.Options{
-		CWD: r.CWD,
-		Env: r.Env,
+		CWD: r.cwdRemote,
+		Env: r.env,
 	}); err != nil {
 		return err
 	}
@@ -443,7 +443,7 @@ func (r *Runner) actionUpload(params grammar.NodeUpload) error {
 
 func (r *Runner) actionEnv(params grammar.NodeEnv) error {
 	fmt.Printf("[step %d]: ENV %s\n", r.step, color.GreenString(params.SourceCode))
-	r.Env[params.Key] = variable.Compile(params.Value, r.Var)
+	r.env[params.Key] = variable.Compile(params.Value, r.Var)
 	return nil
 }
 
@@ -459,7 +459,7 @@ func (r *Runner) actionVar(params grammar.NodeVar) error {
 			if err := r.requireConnection(); err != nil {
 				return err
 			}
-			if remoteEnvValue, err := r.ssh.Env(variable.Compile(params.Env.Key, r.Var), ssh.Options{Env: r.Env}); err != nil {
+			if remoteEnvValue, err := r.ssh.Env(variable.Compile(params.Env.Key, r.Var), ssh.Options{Env: r.env}); err != nil {
 				return err
 			} else {
 				r.Var[params.Key] = remoteEnvValue
@@ -495,8 +495,8 @@ func (r *Runner) actionVar(params grammar.NodeVar) error {
 			}
 
 			b, err := r.ssh.RunAndCombineOutput(strings.Join(params.Command.Command, " "), ssh.Options{
-				CWD: r.CWD,
-				Env: r.Env,
+				CWD: r.cwdRemote,
+				Env: r.env,
 			})
 
 			if err != nil {
