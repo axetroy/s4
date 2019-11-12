@@ -122,15 +122,16 @@ func (c *Client) Connect(host, port, username, password string) error {
 }
 
 func (c *Client) Disconnect() error {
-	sshErr := c.sshClient.Close()
-	sftpErr := c.sftpClient.Close()
-
-	if sshErr != nil {
-		return sshErr
+	if c.sshClient != nil {
+		if err := c.sshClient.Close(); err != nil {
+			return err
+		}
 	}
 
-	if sftpErr != nil {
-		return sftpErr
+	if c.sftpClient != nil {
+		if err := c.sftpClient.Close(); err != nil {
+			return err
+		}
 	}
 
 	return nil

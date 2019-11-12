@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"gopkg.in/AlecAivazis/survey.v1"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -14,7 +15,6 @@ import (
 	"github.com/axetroy/s4/core/ssh"
 	"github.com/axetroy/s4/core/variable"
 	"github.com/fatih/color"
-	"gopkg.in/AlecAivazis/survey.v1"
 )
 
 type Runner struct {
@@ -116,7 +116,7 @@ func (r *Runner) Run() error {
 		case grammar.ActionCONNECT:
 			params := action.Node.(grammar.NodeConnect)
 
-			fmt.Printf("[step %v]: CONNECT %s\n", r.step, color.GreenString(fmt.Sprintf("%s", params.SourceCode)))
+			fmt.Printf("[step %v]: CONNECT %s\n", r.step, color.GreenString(fmt.Sprintf("%s@%s:%s", params.Username, params.Host, params.Port)))
 
 			// if ssh client exist. disconnect first
 			if r.ssh != nil {
@@ -128,21 +128,28 @@ func (r *Runner) Run() error {
 
 			password := ""
 
-			// ask password for remote server
-			prompt := &survey.Password{
-				Message: "Please type remote server's password",
+			if params.Password != nil {
+				password = *params.Password
+				password = variable.Compile(password, r.Var)
+			} else {
+				// ask password for remote server
+				prompt := &survey.Password{
+					Message: "Please type remote server's password",
+				}
+
+				if err := survey.AskOne(prompt, &password, func(ans interface{}) error {
+					return nil
+				}); err != nil {
+					return err
+				}
 			}
 
-			if err := survey.AskOne(prompt, &password, func(ans interface{}) error {
-				return nil
-			}); err != nil {
-				return err
-			}
+			r.ssh = ssh.NewSSH()
 
-			client := ssh.NewSSH()
-			r.ssh = client
+			fmt.Println(password)
 
-			if err := client.Connect(params.Host, params.Port, params.Username, password); err != nil {
+			if err := r.ssh.Connect(params.Host, params.Port, params.Username, password); err != nil {
+				r.ssh = nil
 				return err
 			}
 
@@ -152,7 +159,7 @@ func (r *Runner) Run() error {
 				r.cwd = cwd
 			}
 
-			if remoteCwd, err := client.Pwd(); err != nil {
+			if remoteCwd, err := r.ssh.Pwd(); err != nil {
 				return err
 			} else {
 				r.CWD = remoteCwd

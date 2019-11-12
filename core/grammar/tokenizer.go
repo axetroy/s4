@@ -26,6 +26,7 @@ type NodeConnect struct {
 	Host       string
 	Port       string
 	Username   string
+	Password   *string
 	SourceCode string
 }
 
@@ -290,7 +291,23 @@ func Tokenizer(input string) ([]Token, error) {
 
 			switch keyword {
 			case ActionCONNECT:
-				if addr, err := host.Parse(valueStr); err != nil {
+				var password *string
+
+				hostRaw := value[:1]
+
+				if valueLength != 1 && valueLength != 2 {
+					return tokens, errors.New(fmt.Sprintf("`CONNECT` should follow the format `<username>@<host>:<port> [password]`, but got `%s`", valueStr))
+				}
+
+				if valueLength == 2 {
+					pwd := strings.TrimSpace(value[1])
+
+					if pwd != "" {
+						password = &pwd
+					}
+				}
+
+				if addr, err := host.Parse(strings.Join(hostRaw, "")); err != nil {
 					return tokens, err
 				} else {
 					tokens = append(tokens, Token{
@@ -299,6 +316,7 @@ func Tokenizer(input string) ([]Token, error) {
 							Host:       addr.Host,
 							Port:       addr.Port,
 							Username:   addr.Username,
+							Password:   password,
 							SourceCode: valueStr,
 						},
 					})

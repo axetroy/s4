@@ -44,26 +44,30 @@ for more detail about command. print `s4 --help`
 
 ### Documentation
 
-| Syntax   | Description                                              | Example                                                |
-| -------- | -------------------------------------------------------- | ------------------------------------------------------ |
-| CONNECT  | connect to remote SSH server                             | `CONNECT root@192.168.0.1:22`                          |
-| ENV      | set environmental variable for `RUN` command             | `ENV PRIVATE_KEY = 123`                                |
-| VAR      | defining variables. it can use in anywhere               | `VAR PRIVATE_KEY = 123`<br/>`RUN echo {{PRIVATE_KEY}}` |
-| CD       | change current working directory of remote server        | `CD /home/axetroy`                                     |
-| UPLOAD   | upload local files to remote server                      | `UPLOAD start.py ./server`                             |
-| DOWNLOAD | download remote files to local                           | `DOWNLOAD start.py ./server`                           |
-| COPY     | copy file at remote server                               | `COPY data.db data.db.bak`                             |
-| MOVE     | move file at remote server                               | `MOVE data.bak data.db`                                |
-| DELETE   | delete files at remote server, directory will be ignored | `DELETE file1 file2`                                   |
-| RUN      | run command at remote server                             | `RUN python ./remote/start.py`                         |
-| BASH     | run bash script in local server                          | `BASH cat package.json \| grep version`                |
-| CMD      | run command in local server                              | `RUN ["npm", "run", "build"]`                          |
+| Syntax   | Description                                              | Example                                                                  |
+| -------- | -------------------------------------------------------- | ------------------------------------------------------------------------ |
+| CONNECT  | connect to remote SSH server                             | `CONNECT root@192.168.0.1:22`<br/>`CONNECT root@192.168.0.1:22 password` |
+| ENV      | set environmental variable for `RUN` command             | `ENV PRIVATE_KEY = 123`                                                  |
+| VAR      | defining variables. it can use in anywhere               | `VAR PRIVATE_KEY = 123`<br/>`RUN echo {{PRIVATE_KEY}}`                   |
+| CD       | change current working directory of remote server        | `CD /home/axetroy`                                                       |
+| UPLOAD   | upload local files to remote server                      | `UPLOAD start.py ./server`                                               |
+| DOWNLOAD | download remote files to local                           | `DOWNLOAD start.py ./server`                                             |
+| COPY     | copy file at remote server                               | `COPY data.db data.db.bak`                                               |
+| MOVE     | move file at remote server                               | `MOVE data.bak data.db`                                                  |
+| DELETE   | delete files at remote server, directory will be ignored | `DELETE file1 file2`                                                     |
+| RUN      | run command at remote server                             | `RUN python ./remote/start.py`                                           |
+| BASH     | run bash script in local server                          | `BASH cat package.json \| grep version`                                  |
+| CMD      | run command in local server                              | `RUN ["npm", "run", "build"]`                                            |
 
 <details><summary>CONNECT</summary>
 
-connect to remote SSH server. Its format should be `username@address:port`
+connect to remote SSH server. Its format should be `<username>@<address>:<port> [password]`
 
 eg `CONNECT root@192.168.0.1:22`
+
+eg `CONNECT root@192.168.0.1:22 password`
+
+if password not provide. it will ask you to enter in terminal.
 
 </details>
 

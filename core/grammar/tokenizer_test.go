@@ -10,6 +10,9 @@ func TestTokenizer(t *testing.T) {
 	type args struct {
 		input string
 	}
+
+	password := "123123"
+
 	tests := []struct {
 		name    string
 		args    args
@@ -135,6 +138,7 @@ RUN ls -lh
 						Host:       "192.168.0.1",
 						Port:       "22",
 						Username:   "axetroy",
+						Password:   nil,
 						SourceCode: "axetroy@192.168.0.1:22",
 					},
 				},
@@ -170,6 +174,25 @@ RUN ls -lh
 			},
 			want:    []grammar.Token{},
 			wantErr: true,
+		},
+		{
+			name: "connect with password",
+			args: args{
+				input: "CONNECT root@192.168.0.1:2222 123123",
+			},
+			want: []grammar.Token{
+				{
+					Key: grammar.ActionCONNECT,
+					Node: grammar.NodeConnect{
+						Host:       "192.168.0.1",
+						Username:   "root",
+						Port:       "2222",
+						Password:   &password,
+						SourceCode: "root@192.168.0.1:2222 123123",
+					},
+				},
+			},
+			wantErr: false,
 		},
 		{
 			name: "invalid keyword with comment",
