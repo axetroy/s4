@@ -1,10 +1,11 @@
-package core
+package survey
 
 import (
 	"fmt"
 	"strings"
 
-	"gopkg.in/AlecAivazis/survey.v1/terminal"
+	"github.com/AlecAivazis/survey/v2/core"
+	"github.com/AlecAivazis/survey/v2/terminal"
 )
 
 type Renderer struct {
@@ -13,7 +14,12 @@ type Renderer struct {
 	errorLineCount int
 }
 
-var ErrorTemplate = `{{color "red"}}{{ ErrorIcon }} Sorry, your reply was invalid: {{.Error}}{{color "reset"}}
+type ErrorTemplateData struct {
+	Error error
+	Icon  Icon
+}
+
+var ErrorTemplate = `{{color .Icon.Format }}{{ .Icon.Text }} Sorry, your reply was invalid: {{ .Error.Error }}{{color "reset"}}
 `
 
 func (r *Renderer) WithStdio(stdio terminal.Stdio) {
@@ -35,13 +41,17 @@ func (r *Renderer) NewCursor() *terminal.Cursor {
 	}
 }
 
-func (r *Renderer) Error(invalid error) error {
+func (r *Renderer) Error(config *PromptConfig, invalid error) error {
 	// since errors are printed on top we need to reset the prompt
 	// as well as any previous error print
 	r.resetPrompt(r.lineCount + r.errorLineCount)
+
 	// we just cleared the prompt lines
 	r.lineCount = 0
-	out, err := RunTemplate(ErrorTemplate, invalid)
+	out, err := core.RunTemplate(ErrorTemplate, &ErrorTemplateData{
+		Error: invalid,
+		Icon:  config.Icons.Error,
+	})
 	if err != nil {
 		return err
 	}
@@ -68,7 +78,7 @@ func (r *Renderer) resetPrompt(lines int) {
 func (r *Renderer) Render(tmpl string, data interface{}) error {
 	r.resetPrompt(r.lineCount)
 	// render the template summarizing the current state
-	out, err := RunTemplate(tmpl, data)
+	out, err := core.RunTemplate(tmpl, data)
 	if err != nil {
 		return err
 	}

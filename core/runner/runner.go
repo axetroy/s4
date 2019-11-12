@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"gopkg.in/AlecAivazis/survey.v1"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
 	"strings"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/axetroy/s4/core/grammar"
 	"github.com/axetroy/s4/core/ssh"
 	"github.com/axetroy/s4/core/variable"
@@ -137,9 +137,7 @@ func (r *Runner) Run() error {
 					Message: "Please type remote server's password",
 				}
 
-				if err := survey.AskOne(prompt, &password, func(ans interface{}) error {
-					return nil
-				}); err != nil {
+				if err := survey.AskOne(prompt, &password); err != nil {
 					return err
 				}
 			}
