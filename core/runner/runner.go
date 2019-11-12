@@ -144,8 +144,6 @@ func (r *Runner) Run() error {
 
 			r.ssh = ssh.NewSSH()
 
-			fmt.Println(password)
-
 			if err := r.ssh.Connect(params.Host, params.Port, params.Username, password); err != nil {
 				r.ssh = nil
 				return err
