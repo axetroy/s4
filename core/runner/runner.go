@@ -18,14 +18,13 @@ import (
 )
 
 type Runner struct {
-	ssh      *ssh.Client     // current ssh client
-	step     int             // current step
-	cwd      string          // current working dir at local
-	tokens   []grammar.Token // token from parsing
-	CWD      string
-	Env      map[string]string
-	Var      map[string]string
-	Password string
+	ssh    *ssh.Client     // current ssh client
+	step   int             // current step
+	cwd    string          // current working dir at local
+	tokens []grammar.Token // token from parsing
+	CWD    string
+	Env    map[string]string
+	Var    map[string]string
 }
 
 func NewRunner(configFilepath string) (*Runner, error) {
@@ -104,16 +103,7 @@ func (r *Runner) resolveRemotePaths(remotePaths []string) []string {
 	return paths
 }
 
-func (r *Runner) SetPassword(password string) {
-	r.Password = password
-}
-
-func (r *Runner) Run(check bool) error {
-
-	if check {
-		return nil
-	}
-
+func (r *Runner) Run() error {
 	defer func() {
 		if r.ssh != nil {
 			_ = r.ssh.Disconnect()
@@ -136,26 +126,23 @@ func (r *Runner) Run(check bool) error {
 				r.ssh = nil
 			}
 
-			if r.Password == "" {
-				// ask password for remote server
-				password := ""
-				prompt := &survey.Password{
-					Message: "Please type remote server's password",
-				}
+			password := ""
 
-				if err := survey.AskOne(prompt, &password, func(ans interface{}) error {
-					return nil
-				}); err != nil {
-					return err
-				}
+			// ask password for remote server
+			prompt := &survey.Password{
+				Message: "Please type remote server's password",
+			}
 
-				r.Password = password
+			if err := survey.AskOne(prompt, &password, func(ans interface{}) error {
+				return nil
+			}); err != nil {
+				return err
 			}
 
 			client := ssh.NewSSH()
 			r.ssh = client
 
-			if err := client.Connect(params.Host, params.Port, params.Username, r.Password); err != nil {
+			if err := client.Connect(params.Host, params.Port, params.Username, password); err != nil {
 				return err
 			}
 

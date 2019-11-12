@@ -81,9 +81,7 @@ SOURCE CODE:
 
 	app.Action = func(c *cli.Context) error {
 		configFile := c.String("config")
-		password := c.String("password")
-		check := c.Bool("check")
-		return command.Default(configFile, password, check)
+		return command.Default(configFile)
 	}
 
 	if err := app.Run(os.Args); err != nil {
