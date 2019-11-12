@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
-	"os/exec"
 	"path"
 	"strings"
 
@@ -168,6 +167,25 @@ func (c *Client) Env(key string, options Options) (string, error) {
 	return strings.TrimSpace(stdoutBuf.String()), nil
 }
 
+func (c *Client) RunAndCombineOutput(command string, options Options) ([]byte, error) {
+	// Create a session. It is one session per command.
+	session, err := c.sshClient.NewSession()
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer session.Close()
+
+	if options.CWD != "" {
+		command = "cd " + options.CWD + " && " + command
+	}
+
+	command = setEnvForCommand(command, options.Env)
+
+	return session.CombinedOutput(command)
+}
+
 func (c *Client) RunWithCustomIO(command string, options Options, stdout *bytes.Buffer, stderr *bytes.Buffer) error {
 	// Create a session. It is one session per command.
 	session, err := c.sshClient.NewSession()
@@ -194,56 +212,6 @@ func (c *Client) RunWithCustomIO(command string, options Options, stdout *bytes.
 	return nil
 }
 
-// TODO: not use yet
-func (c *Client) RunWithCommandPipe(command string, commands []string, options Options) (err error) {
-	// Create a session. It is one session per command.
-	session, err := c.sshClient.NewSession()
-
-	if err != nil {
-		return err
-	}
-
-	defer session.Close()
-
-	cmd := exec.Command(commands[0], commands[1:]...)
-
-	if sessionStdOut, err := session.StdoutPipe(); err != nil {
-		return err
-	} else {
-		if cmdStdin, err := cmd.StdinPipe(); err != nil {
-			return err
-		} else {
-			go io.Copy(cmdStdin, sessionStdOut)
-		}
-	}
-
-	if sessionStdErr, err := session.StderrPipe(); err != nil {
-		return err
-	} else {
-		if cmdStdin, err := cmd.StdinPipe(); err != nil {
-			return err
-		} else {
-			go io.Copy(cmdStdin, sessionStdErr)
-		}
-	}
-
-	if options.CWD != "" {
-		command = "cd " + options.CWD + " && " + command
-	}
-
-	command = setEnvForCommand(command, options.Env)
-
-	go func() {
-		err = session.Run(command)
-	}()
-
-	if err := cmd.Start(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (c *Client) Run(command string, options Options) error {
 	// Create a session. It is one session per command.
 	session, err := c.sshClient.NewSession()
@@ -254,25 +222,32 @@ func (c *Client) Run(command string, options Options) error {
 
 	defer session.Close()
 
-	if sessionStdOut, err := session.StdoutPipe(); err != nil {
-		return err
-	} else {
-		go io.Copy(os.Stdout, sessionStdOut)
-	}
-
-	if sessionStdErr, err := session.StderrPipe(); err != nil {
-		return err
-	} else {
-		go io.Copy(os.Stdout, sessionStdErr)
-	}
-
 	if options.CWD != "" {
 		command = "cd " + options.CWD + " && " + command
 	}
 
 	command = setEnvForCommand(command, options.Env)
 
+	sessionStdOut, err := session.StdoutPipe()
+
+	if err != nil {
+		return err
+	}
+
+	sessionStdErr, err := session.StderrPipe()
+
+	if err != nil {
+		return err
+	}
+
 	if err = session.Run(command); err != nil {
+		return err
+	}
+
+	if _, err := io.Copy(os.Stdout, sessionStdOut); err != nil {
+		return err
+	}
+	if _, err := io.Copy(os.Stderr, sessionStdErr); err != nil {
 		return err
 	}
 
