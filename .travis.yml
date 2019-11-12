@@ -3,7 +3,7 @@ language: go
 sudo: required
 
 go:
-  - "1.13"
+  - "1.13.1"
 
 dist: trusty
 
@@ -16,7 +16,8 @@ before_script:
 
 script:
   - make test
-  - make build
+  - make build-simple
+  - ls -lh ./bin
 
 after_success:
   #  report code cover

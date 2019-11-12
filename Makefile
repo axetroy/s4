@@ -3,3 +3,7 @@ test:
 
 build:
 	bash build.sh
+
+build-simple:
+	bash build-simple.sh
+	echo "Build Success!"
