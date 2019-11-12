@@ -128,6 +128,14 @@ func (r *Runner) Run(check bool) error {
 
 			fmt.Printf("[step %v]: CONNECT %s\n", r.step, color.GreenString(fmt.Sprintf("%s", params.SourceCode)))
 
+			// if ssh client exist. disconnect first
+			if r.ssh != nil {
+				if err := r.ssh.Disconnect(); err != nil {
+					return err
+				}
+				r.ssh = nil
+			}
+
 			if r.Password == "" {
 				// ask password for remote server
 				password := ""
