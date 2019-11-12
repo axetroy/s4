@@ -12,7 +12,7 @@ func main() {
 
 	app.Name = "s4"
 	app.Usage = "Integrate local and remote workflow"
-	app.Version = "0.5.6"
+	app.Version = "0.6.0"
 	app.Author = "Axetroy"
 	app.Email = "axetroy.dev@gmail.com"
 
@@ -44,14 +44,6 @@ SOURCE CODE:
 			Name:  "config, c",
 			Usage: "specify the s4 configuration file.",
 			Value: ".s4", // default value
-		},
-		cli.StringFlag{
-			Name:  "password",
-			Usage: "specify the password for the server",
-		},
-		cli.BoolFlag{
-			Name:  "check",
-			Usage: "check if the configuration file is valid",
 		},
 	}
 
