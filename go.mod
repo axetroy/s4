@@ -12,6 +12,6 @@ require (
 	github.com/mattn/go-runewidth v0.0.6 // indirect
 	github.com/pkg/sftp v1.10.1
 	github.com/urfave/cli v1.22.1
-	golang.org/x/crypto v0.0.0-20191111213947-16651526fdb4
+	golang.org/x/crypto v0.0.0-20191112222119-e1110fd1c708
 	golang.org/x/sys v0.0.0-20191110163157-d32e6e3b99c4 // indirect
 )
