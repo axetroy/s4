@@ -44,35 +44,35 @@ for more detail about command. print `s4 --help`
 
 ### Documentation
 
-| Syntax   | Description                                              | Example                                                                  |
-| -------- | -------------------------------------------------------- | ------------------------------------------------------------------------ |
-| CONNECT  | connect to remote SSH server                             | `CONNECT root@192.168.0.1:22`<br/>`CONNECT root@192.168.0.1:22 password` |
-| ENV      | set environmental variable for `RUN` command             | `ENV PRIVATE_KEY = 123`                                                  |
-| VAR      | defining variables. it can use in anywhere               | `VAR PRIVATE_KEY = 123`<br/>`RUN echo {{PRIVATE_KEY}}`                   |
-| CD       | change current working directory of remote server        | `CD /home/axetroy`                                                       |
-| UPLOAD   | upload local files to remote server                      | `UPLOAD start.py ./server`                                               |
-| DOWNLOAD | download remote files to local                           | `DOWNLOAD start.py ./server`                                             |
-| COPY     | copy file at remote server                               | `COPY data.db data.db.bak`                                               |
-| MOVE     | move file at remote server                               | `MOVE data.bak data.db`                                                  |
-| DELETE   | delete files at remote server, directory will be ignored | `DELETE file1 file2`                                                     |
-| RUN      | run command at remote server                             | `RUN python ./remote/start.py`                                           |
-| CMD      | run command in local server                              | `RUN ["npm", "run", "build"]`                                            |
+| Syntax   | Description                                        | Example                                                                  |
+| -------- | -------------------------------------------------- | ------------------------------------------------------------------------ |
+| CONNECT  | Connect to the server.                             | `CONNECT root@192.168.0.1:22`<br/>`CONNECT root@192.168.0.1:22 password` |
+| ENV      | Setting environment variables for remote server.   | `ENV PRIVATE_KEY = 123`                                                  |
+| VAR      | Defining variables.                                | `VAR PRIVATE_KEY = 123`<br/>`RUN echo {{PRIVATE_KEY}}`                   |
+| CD       | Change current working directory of remote server. | `CD /home/axetroy`                                                       |
+| UPLOAD   | Upload local files to remote server dir.           | `UPLOAD start.py ./server`                                               |
+| DOWNLOAD | Download remote files to local dir.                | `DOWNLOAD start.py ./server`                                             |
+| COPY     | Copy file at remote server.                        | `COPY data.db data.db.bak`                                               |
+| MOVE     | Move file at remote server.                        | `MOVE data.bak data.db`                                                  |
+| DELETE   | Delete files at remote server.                     | `DELETE file1 file2`                                                     |
+| RUN      | Run command at remote server.                      | `RUN python ./remote/start.py`                                           |
+| CMD      | Run command in local server.                       | `RUN ["npm", "run", "build"]`                                            |
 
 <details><summary>CONNECT</summary>
 
-connect to remote SSH server. Its format should be `<username>@<address>:<port> [password]`
+Connect to remote SSH server. Its format should be `<username>@<address>:<port> [password]`
 
 eg `CONNECT root@192.168.0.1:22`
 
 eg `CONNECT root@192.168.0.1:22 password`
 
-if password not provide. it will ask you to enter in terminal.
+If password not provide. it will ask you to enter in terminal.
 
 </details>
 
 <details><summary>ENV</summary>
 
-set environmental variable for `RUN` command
+Set environmental variable for `RUN` command
 
 eg `ENV PRIVATE_KEY = 123`
 
@@ -80,7 +80,7 @@ eg `ENV PRIVATE_KEY = 123`
 
 <details><summary>VAR</summary>
 
-defining variables. It has 3 ways to define it.
+Defining variables. It has 3 ways to define it.
 
 ### Set string literals
 
@@ -96,9 +96,11 @@ RUN echo {{PRIVATE_KEY}}
 
 Its format is this `VAR {key} = ${envKey}:{tag}`
 
-`tag` can be `local`/`remote`. Used to specify to get local/remote environment variables
+`tag` can be `local`/`remote`. Used to specify to get local/remote environment variables.
 
 ```s4
+CONNECT root@192.168.0.1:22
+
 VAR GOPATH_LOCAL = $GOPATH:local
 
 VAR GOPATH_REMOTE = $GOPATH:remote
@@ -113,15 +115,15 @@ Its format is this `VAR {key} <= {bashCommand}`.
 
 This will execute command at remote and set stdout to variable.
 
-or use the format `VAR {key} <= ["{command}", "{argument1}", "{argument2}"]`. It will run in local
+or use the format `VAR {key} <= ["{command}", "{argument1}", "{argument2}"]`. It will run in local.
 
 ```s4
-VAR GO_VERSION_LOCAL <= ["go", "version"]
+VAR NODE_VERSION_LOCAL <= ["node", "-v"]
 
-VAR GO_VERSION_REMOTE <= go version
+VAR NODE_VERSION_REMOTE <= node -v
 
-CMD ["echo", "'local version : {{GO_VERSION_LOCAL}}'"]
-RUN echo "remote version: {{GO_VERSION_REMOTE}}"
+CMD ["echo", "'local version : {{NODE_VERSION_LOCAL}}'"]
+RUN echo "remote version: {{NODE_VERSION_REMOTE}}"
 ```
 
 ```s4
@@ -134,7 +136,7 @@ RUN echo {{PRIVATE_KEY}}
 
 <details><summary>CD</summary>
 
-change current working directory of remote server
+Change current working directory of remote server
 
 eg `CD /home/axetroy`
 
@@ -146,7 +148,7 @@ This will affect all operations on the remote server, including upload/download/
 
 <details><summary>UPLOAD</summary>
 
-upload local files to remote server
+Upload local files to remote server
 
 eg `UPLOAD start.py ./server`
 
@@ -158,7 +160,7 @@ The rest of the parameters are local files path.
 
 <details><summary>DOWNLOAD</summary>
 
-download remote files to local
+Download remote files to local
 
 eg `DOWNLOAD start.py ./server`
 
@@ -170,7 +172,7 @@ The rest of the parameters are remote files path.
 
 <details><summary>COPY</summary>
 
-copy file at remote server
+Copy file at remote server
 
 eg `COPY data.db data.db.bak`
 
@@ -178,7 +180,7 @@ eg `COPY data.db data.db.bak`
 
 <details><summary>MOVE</summary>
 
-move file at remote server
+Move file at remote server
 
 eg `MOVE data.db data.db.bak`
 
@@ -186,7 +188,7 @@ eg `MOVE data.db data.db.bak`
 
 <details><summary>DELETE</summary>
 
-delete files at remote server, for security, Linux dangerous directories will be ignored
+Delete files at remote server, for security, Linux dangerous directories will be ignored
 
 eg `DELETE file1 file2`
 
@@ -194,7 +196,7 @@ eg `DELETE file1 file2`
 
 <details><summary>RUN</summary>
 
-run command at remote server
+Run command at remote server
 
 eg `RUN python ./remote/start.py`
 
@@ -211,7 +213,7 @@ RUN npm version \
 
 <details><summary>CMD</summary>
 
-run command in local
+Run command in local
 
 eg `RUN ["npm", "run", "build"]`
 
