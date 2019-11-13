@@ -56,7 +56,6 @@ for more detail about command. print `s4 --help`
 | MOVE     | move file at remote server                               | `MOVE data.bak data.db`                                                  |
 | DELETE   | delete files at remote server, directory will be ignored | `DELETE file1 file2`                                                     |
 | RUN      | run command at remote server                             | `RUN python ./remote/start.py`                                           |
-| BASH     | run bash script in local server                          | `BASH cat package.json \| grep version`                                  |
 | CMD      | run command in local server                              | `RUN ["npm", "run", "build"]`                                            |
 
 <details><summary>CONNECT</summary>
@@ -104,7 +103,7 @@ VAR GOPATH_LOCAL = $GOPATH:local
 
 VAR GOPATH_REMOTE = $GOPATH:remote
 
-BASH echo "local GOPATH: {{GOPATH_LOCAL}}"
+CMD ["echo", "'local GOPATH {{GOPATH_LOCAL}}'"]
 RUN echo "remote GOPATH: {{GOPATH_REMOTE}}"
 ```
 
@@ -121,7 +120,7 @@ VAR GO_VERSION_LOCAL <= ["go", "version"]
 
 VAR GO_VERSION_REMOTE <= go version
 
-BASH echo "local version: {{GO_VERSION_LOCAL}}"
+CMD ["echo", "'local version : {{GO_VERSION_LOCAL}}'"]
 RUN echo "remote version: {{GO_VERSION_REMOTE}}"
 ```
 
@@ -198,23 +197,6 @@ eg `DELETE file1 file2`
 run command at remote server
 
 eg `RUN python ./remote/start.py`
-
-It supports multi-line wrap
-
-```s4
-RUN npm version \
-    && npm run build \
-    && npm run test \
-    && npm run publish
-```
-
-</details>
-
-<details><summary>BASH</summary>
-
-run command in local
-
-eg `RUN python ./local/start.py`
 
 It supports multi-line wrap
 

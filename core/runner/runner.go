@@ -24,7 +24,7 @@ type Runner struct {
 	tokens    []grammar.Token   // token from parsing
 	cwdRemote string            // current remote working dir
 	env       map[string]string // env for remote
-	Var       map[string]string // var
+	variable  map[string]string // var
 }
 
 func NewRunner(configFilepath string) (*Runner, error) {
@@ -53,9 +53,9 @@ func NewRunner(configFilepath string) (*Runner, error) {
 	}
 
 	return &Runner{
-		tokens: tokens,
-		env:    map[string]string{},
-		Var:    map[string]string{},
+		tokens:   tokens,
+		env:      map[string]string{},
+		variable: map[string]string{},
 	}, nil
 }
 
@@ -130,7 +130,7 @@ func (r *Runner) Run() error {
 
 			if params.Password != nil {
 				password = *params.Password
-				password = variable.Compile(password, r.Var)
+				password = variable.Compile(password, r.variable)
 			} else {
 				// ask password for remote server
 				prompt := &survey.Password{
@@ -174,11 +174,6 @@ func (r *Runner) Run() error {
 			break
 		case grammar.ActionCD:
 			if err := r.actionCd(action.Node.(grammar.NodeCd)); err != nil {
-				return err
-			}
-			break
-		case grammar.ActionBASH:
-			if err := r.actionBash(action.Node.(grammar.NodeBash)); err != nil {
 				return err
 			}
 			break
@@ -229,44 +224,6 @@ func (r *Runner) Run() error {
 	return nil
 }
 
-func (r *Runner) actionBash(params grammar.NodeBash) error {
-	originCommand := params.Command
-
-	fmt.Printf("[step %d]: BASH %s\n", r.step, color.YellowString(originCommand))
-
-	bashPath := os.Getenv("SHELL")
-
-	// if not found bash in you env.
-	if len(bashPath) == 0 {
-		if bashBinPath, bashNotExist := exec.LookPath("bash"); bashNotExist != nil {
-			if shBinPath, shNotExist := exec.LookPath("sh"); shNotExist != nil {
-				return errors.New(" can not found 'bash' in your system")
-			} else {
-				bashPath = shBinPath
-			}
-		} else {
-			bashPath = bashBinPath
-		}
-	}
-
-	targetCommand := variable.Compile(originCommand, r.Var)
-
-	c := exec.Command(bashPath, "-c", targetCommand)
-
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
-
-	if err := c.Run(); err != nil {
-		return err
-	}
-
-	if c.ProcessState.Success() == false {
-		return errors.New(fmt.Sprintf("run command '%s' fail.", originCommand))
-	}
-
-	return nil
-}
-
 func (r *Runner) actionCd(params grammar.NodeCd) error {
 	if err := r.requireConnection(); err != nil {
 		return err
@@ -276,7 +233,7 @@ func (r *Runner) actionCd(params grammar.NodeCd) error {
 
 	fmt.Printf("[step %d]: CD %s\n", r.step, color.GreenString(dir))
 
-	cwd := variable.Compile(dir, r.Var)
+	cwd := variable.Compile(dir, r.variable)
 
 	r.cwdRemote = r.resolveRemotePath(cwd)
 
@@ -286,8 +243,8 @@ func (r *Runner) actionCd(params grammar.NodeCd) error {
 func (r *Runner) actionCmd(params grammar.NodeCmd) error {
 	fmt.Printf("[step %d]: CMD %s\n", r.step, color.YellowString(fmt.Sprintf("%v", params.SourceCode)))
 
-	command := variable.Compile(params.Command, r.Var)
-	args := variable.CompileArray(params.Arguments, r.Var)
+	command := variable.Compile(params.Command, r.variable)
+	args := variable.CompileArray(params.Arguments, r.variable)
 
 	c := exec.Command(command, args...)
 
@@ -315,8 +272,8 @@ func (r *Runner) actionCopy(params grammar.NodeCopy) error {
 
 	fmt.Printf("[step %d]: COPY %s to %s\n", r.step, color.YellowString(sourceFilepath), color.GreenString(destinationFilepath))
 
-	sourceFilepath = variable.Compile(sourceFilepath, r.Var)
-	destinationFilepath = variable.Compile(destinationFilepath, r.Var)
+	sourceFilepath = variable.Compile(sourceFilepath, r.variable)
+	destinationFilepath = variable.Compile(destinationFilepath, r.variable)
 
 	sourceFilepath = r.resolveRemotePath(sourceFilepath)
 	destinationFilepath = r.resolveRemotePath(destinationFilepath)
@@ -334,7 +291,7 @@ func (r *Runner) actionDelete(params grammar.NodeDelete) error {
 
 	fmt.Printf("[step %v]: DELETE %s\n", r.step, color.YellowString(strings.Join(params.Targets, ",")))
 
-	args := variable.CompileArray(params.Targets, r.Var)
+	args := variable.CompileArray(params.Targets, r.variable)
 
 	files := r.resolveRemotePaths(args)
 
@@ -355,8 +312,8 @@ func (r *Runner) actionDownload(params grammar.NodeUpload) error {
 
 	fmt.Printf("[step %d]: DOWNLOAD %s to %s\n", r.step, color.YellowString(strings.Join(sourceFiles, ", ")), color.GreenString(destinationDir))
 
-	sourceFiles = variable.CompileArray(sourceFiles, r.Var)
-	destinationDir = variable.Compile(destinationDir, r.Var)
+	sourceFiles = variable.CompileArray(sourceFiles, r.variable)
+	destinationDir = variable.Compile(destinationDir, r.variable)
 
 	sourceFiles = r.resolveRemotePaths(sourceFiles)
 	destinationDir = r.resolveLocalPath(destinationDir)
@@ -380,8 +337,8 @@ func (r *Runner) actionMove(params grammar.NodeCopy) error {
 
 	fmt.Printf("[step %d]: MOVE %s to %s\n", r.step, color.YellowString(sourceFilepath), color.GreenString(destinationFilepath))
 
-	sourceFilepath = variable.Compile(sourceFilepath, r.Var)
-	destinationFilepath = variable.Compile(destinationFilepath, r.Var)
+	sourceFilepath = variable.Compile(sourceFilepath, r.variable)
+	destinationFilepath = variable.Compile(destinationFilepath, r.variable)
 
 	sourceFilepath = r.resolveRemotePath(sourceFilepath)
 	destinationFilepath = r.resolveRemotePath(destinationFilepath)
@@ -402,7 +359,7 @@ func (r *Runner) actionRun(params grammar.NodeBash) error {
 
 	fmt.Printf("[step %d]: RUN %s\n", r.step, color.YellowString(command))
 
-	command = variable.Compile(command, r.Var)
+	command = variable.Compile(command, r.variable)
 
 	if err := r.ssh.Run(command, ssh.Options{
 		CWD: r.cwdRemote,
@@ -424,8 +381,8 @@ func (r *Runner) actionUpload(params grammar.NodeUpload) error {
 
 	fmt.Printf("[step %d]: UPLOAD %s to %s\n", r.step, color.YellowString(strings.Join(sourceFiles, ", ")), color.GreenString(destinationDir))
 
-	sourceFiles = variable.CompileArray(sourceFiles, r.Var)
-	destinationDir = variable.Compile(destinationDir, r.Var)
+	sourceFiles = variable.CompileArray(sourceFiles, r.variable)
+	destinationDir = variable.Compile(destinationDir, r.variable)
 
 	sourceFiles = r.resolveLocalPaths(sourceFiles)
 	destinationDir = r.resolveRemotePath(destinationDir)
@@ -441,7 +398,7 @@ func (r *Runner) actionUpload(params grammar.NodeUpload) error {
 
 func (r *Runner) actionEnv(params grammar.NodeEnv) error {
 	fmt.Printf("[step %d]: ENV %s\n", r.step, color.GreenString(params.SourceCode))
-	r.env[params.Key] = variable.Compile(params.Value, r.Var)
+	r.env[params.Key] = variable.Compile(params.Value, r.variable)
 	return nil
 }
 
@@ -449,23 +406,23 @@ func (r *Runner) actionVar(params grammar.NodeVar) error {
 	fmt.Printf("[step %d]: VAR %s\n", r.step, color.GreenString(params.SourceCode))
 
 	if params.Literal != nil {
-		r.Var[params.Key] = params.Literal.Value
+		r.variable[params.Key] = params.Literal.Value
 	} else if params.Env != nil {
 		if params.Env.Local {
-			r.Var[params.Key] = os.Getenv(variable.Compile(params.Env.Key, r.Var))
+			r.variable[params.Key] = os.Getenv(variable.Compile(params.Env.Key, r.variable))
 		} else {
 			if err := r.requireConnection(); err != nil {
 				return err
 			}
-			if remoteEnvValue, err := r.ssh.Env(variable.Compile(params.Env.Key, r.Var), ssh.Options{Env: r.env}); err != nil {
+			if remoteEnvValue, err := r.ssh.Env(variable.Compile(params.Env.Key, r.variable), ssh.Options{Env: r.env}); err != nil {
 				return err
 			} else {
-				r.Var[params.Key] = remoteEnvValue
+				r.variable[params.Key] = remoteEnvValue
 			}
 		}
 	} else if params.Command != nil {
 		if params.Command.Local {
-			commandArr := variable.CompileArray(params.Command.Command, r.Var)
+			commandArr := variable.CompileArray(params.Command.Command, r.variable)
 
 			command := commandArr[0]
 			args := commandArr[1:]
@@ -486,7 +443,7 @@ func (r *Runner) actionVar(params grammar.NodeVar) error {
 				return errors.New(fmt.Sprintf("run command '%s' fail.", params.Command.Command))
 			}
 
-			r.Var[params.Key] = strings.TrimSpace(stdoutBuf.String())
+			r.variable[params.Key] = strings.TrimSpace(stdoutBuf.String())
 		} else {
 			if err := r.requireConnection(); err != nil {
 				return err
@@ -503,7 +460,7 @@ func (r *Runner) actionVar(params grammar.NodeVar) error {
 
 			output := string(b)
 
-			r.Var[params.Key] = strings.TrimSpace(output)
+			r.variable[params.Key] = strings.TrimSpace(output)
 		}
 	}
 

@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/axetroy/s4/core/variable"
 	"regexp"
 	"strings"
 
 	"github.com/axetroy/s4/core/host"
+	"github.com/axetroy/s4/core/variable"
 )
 
 type Token struct {
@@ -97,7 +97,6 @@ const (
 	ActionDELETE   = "DELETE"
 	ActionRUN      = "RUN"
 	ActionCMD      = "CMD"
-	ActionBASH     = "BASH"
 )
 
 var (
@@ -114,7 +113,6 @@ var (
 		ActionRUN,
 		ActionRUN,
 		ActionCMD,
-		ActionBASH,
 	}
 	commentIdentifier = "#"
 	validKeywordReg   = regexp.MustCompile(strings.Join(Actions, "|"))
@@ -394,8 +392,6 @@ func Tokenizer(input string) ([]Token, error) {
 				})
 				break
 			case ActionRUN:
-				fallthrough
-			case ActionBASH:
 				if valueLength < 1 {
 					return tokens, errors.New(fmt.Sprintf("`%s` accepts at least one parameter but got `%s`", keyword, valueStr))
 				}
