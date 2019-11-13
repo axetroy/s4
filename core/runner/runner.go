@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/axetroy/s4/core/grammar"
@@ -103,6 +104,19 @@ func (r *Runner) resolveRemotePaths(remotePaths []string) []string {
 	return paths
 }
 
+func (r *Runner) nextStep(action string, msg string) {
+	fmt.Printf("[step %v]: %s %s\n", r.step, strings.ToUpper(action), msg)
+	r.step++
+}
+
+func printTimeDiff(d1 time.Time, d2 time.Time) {
+	timeDiffNano := d2.UnixNano() - d1.UnixNano()
+
+	diffSecond := float64(timeDiffNano) / 1000 / 1000 / 1000
+
+	fmt.Println(color.GreenString(fmt.Sprintf("Finish in %ss.", fmt.Sprintf("%f", diffSecond))))
+}
+
 func (r *Runner) Run() error {
 	defer func() {
 		if r.ssh != nil {
@@ -110,116 +124,106 @@ func (r *Runner) Run() error {
 		}
 	}()
 
+	d1 := time.Now()
+
 	for _, action := range r.tokens {
-		r.step++
+		var err error
 		switch action.Key {
 		case grammar.ActionCONNECT:
-			params := action.Node.(grammar.NodeConnect)
-
-			fmt.Printf("[step %v]: CONNECT %s\n", r.step, color.GreenString(fmt.Sprintf("%s@%s:%s", params.Username, params.Host, params.Port)))
-
-			// if ssh client exist. disconnect first
-			if r.ssh != nil {
-				if err := r.ssh.Disconnect(); err != nil {
-					return err
-				}
-				r.ssh = nil
-			}
-
-			password := ""
-
-			if params.Password != nil {
-				password = *params.Password
-				password = variable.Compile(password, r.variable)
-			} else {
-				// ask password for remote server
-				prompt := &survey.Password{
-					Message: "Please type remote server's password",
-				}
-
-				if err := survey.AskOne(prompt, &password); err != nil {
-					return err
-				}
-			}
-
-			r.ssh = ssh.NewSSH()
-
-			if err := r.ssh.Connect(params.Host, params.Port, params.Username, password); err != nil {
-				r.ssh = nil
-				return err
-			}
-
-			if cwd, err := os.Getwd(); err != nil {
-				return err
-			} else {
-				r.cwdLocal = cwd
-			}
-
-			if remoteCwd, err := r.ssh.Pwd(); err != nil {
-				return err
-			} else {
-				r.cwdRemote = remoteCwd
-			}
-
+			err = r.actionConnect(action.Node.(grammar.NodeConnect))
 			break
 		case grammar.ActionVAR:
-			if err := r.actionVar(action.Node.(grammar.NodeVar)); err != nil {
-				return err
-			}
+			err = r.actionVar(action.Node.(grammar.NodeVar))
 			break
 		case grammar.ActionENV:
-			if err := r.actionEnv(action.Node.(grammar.NodeEnv)); err != nil {
-				return err
-			}
+			err = r.actionEnv(action.Node.(grammar.NodeEnv))
 			break
 		case grammar.ActionCD:
-			if err := r.actionCd(action.Node.(grammar.NodeCd)); err != nil {
-				return err
-			}
+			err = r.actionCd(action.Node.(grammar.NodeCd))
 			break
 		case grammar.ActionCMD:
-			if err := r.actionCmd(action.Node.(grammar.NodeCmd)); err != nil {
-				return err
-			}
+			err = r.actionCmd(action.Node.(grammar.NodeCmd))
 			break
 		case grammar.ActionRUN:
-			if err := r.actionRun(action.Node.(grammar.NodeRun)); err != nil {
-				return err
-			}
+			err = r.actionRun(action.Node.(grammar.NodeRun))
 			break
 		case grammar.ActionMOVE:
-			if err := r.actionMove(action.Node.(grammar.NodeCopy)); err != nil {
-				return err
-			}
+			err = r.actionMove(action.Node.(grammar.NodeCopy))
 			break
 		case grammar.ActionCOPY:
-			if err := r.actionCopy(action.Node.(grammar.NodeCopy)); err != nil {
-				return err
-			}
+			err = r.actionCopy(action.Node.(grammar.NodeCopy))
 			break
 		case grammar.ActionDELETE:
-			if err := r.actionDelete(action.Node.(grammar.NodeDelete)); err != nil {
-				return err
-			}
+			err = r.actionDelete(action.Node.(grammar.NodeDelete))
 			break
 		case grammar.ActionUPLOAD:
-			if err := r.actionUpload(action.Node.(grammar.NodeUpload)); err != nil {
-				return err
-			}
+			err = r.actionUpload(action.Node.(grammar.NodeUpload))
 			break
 		case grammar.ActionDOWNLOAD:
-			if err := r.actionDownload(action.Node.(grammar.NodeUpload)); err != nil {
-				return err
-			}
+			err = r.actionDownload(action.Node.(grammar.NodeUpload))
 			break
 		default:
-			return errors.New(fmt.Sprintf("Invalid action `%s`", action.Key))
+			err = errors.New(fmt.Sprintf("Invalid action `%s`", action.Key))
+		}
+
+		if err != nil {
+			printTimeDiff(d1, time.Now())
+			return err
 		}
 	}
 
-	r.step++
+	r.nextStep("END", color.GreenString("done!"))
 
-	fmt.Printf("[step %d]: %s\n", r.step, color.GreenString("done!"))
+	printTimeDiff(d1, time.Now())
+
+	return nil
+}
+
+func (r *Runner) actionConnect(params grammar.NodeConnect) error {
+	r.nextStep(grammar.ActionCONNECT, color.GreenString(fmt.Sprintf("%s@%s:%s", params.Username, params.Host, params.Port)))
+
+	// if ssh client exist. disconnect first
+	if r.ssh != nil {
+		if err := r.ssh.Disconnect(); err != nil {
+			return err
+		}
+		r.ssh = nil
+	}
+
+	password := ""
+
+	if params.Password != nil {
+		password = *params.Password
+		password = variable.Compile(password, r.variable)
+	} else {
+		// ask password for remote server
+		prompt := &survey.Password{
+			Message: "Please type remote server's password",
+		}
+
+		if err := survey.AskOne(prompt, &password); err != nil {
+			return err
+		}
+	}
+
+	r.ssh = ssh.NewSSH()
+
+	if err := r.ssh.Connect(params.Host, params.Port, params.Username, password); err != nil {
+		r.ssh = nil
+		return err
+	}
+
+	if cwd, err := os.Getwd(); err != nil {
+		return err
+	} else {
+		r.cwdLocal = cwd
+	}
+
+	if remoteCwd, err := r.ssh.Pwd(); err != nil {
+		return err
+	} else {
+		r.cwdRemote = remoteCwd
+	}
 
 	return nil
 }
@@ -231,7 +235,7 @@ func (r *Runner) actionCd(params grammar.NodeCd) error {
 
 	dir := params.Target
 
-	fmt.Printf("[step %d]: CD %s\n", r.step, color.GreenString(dir))
+	r.nextStep(grammar.ActionCD, color.GreenString(dir))
 
 	cwd := variable.Compile(dir, r.variable)
 
@@ -241,7 +245,7 @@ func (r *Runner) actionCd(params grammar.NodeCd) error {
 }
 
 func (r *Runner) actionCmd(params grammar.NodeCmd) error {
-	fmt.Printf("[step %d]: CMD %s\n", r.step, color.YellowString(fmt.Sprintf("%v", params.SourceCode)))
+	r.nextStep(grammar.ActionCMD, color.YellowString(fmt.Sprintf("%v", params.SourceCode)))
 
 	command := variable.Compile(params.Command, r.variable)
 	args := variable.CompileArray(params.Arguments, r.variable)
@@ -263,14 +267,21 @@ func (r *Runner) actionCmd(params grammar.NodeCmd) error {
 }
 
 func (r *Runner) actionCopy(params grammar.NodeCopy) error {
-	if err := r.requireConnection(); err != nil {
-		return err
-	}
-
 	sourceFilepath := params.Source
 	destinationFilepath := params.Destination
 
-	fmt.Printf("[step %d]: COPY %s to %s\n", r.step, color.YellowString(sourceFilepath), color.GreenString(destinationFilepath))
+	r.nextStep(
+		grammar.ActionCOPY,
+		fmt.Sprintf(
+			"%s to %s",
+			color.YellowString(sourceFilepath),
+			color.GreenString(destinationFilepath),
+		),
+	)
+
+	if err := r.requireConnection(); err != nil {
+		return err
+	}
 
 	sourceFilepath = variable.Compile(sourceFilepath, r.variable)
 	destinationFilepath = variable.Compile(destinationFilepath, r.variable)
@@ -289,7 +300,7 @@ func (r *Runner) actionDelete(params grammar.NodeDelete) error {
 		return err
 	}
 
-	fmt.Printf("[step %v]: DELETE %s\n", r.step, color.YellowString(strings.Join(params.Targets, ",")))
+	r.nextStep(grammar.ActionDELETE, color.YellowString(strings.Join(params.Targets, ", ")))
 
 	args := variable.CompileArray(params.Targets, r.variable)
 
@@ -303,14 +314,21 @@ func (r *Runner) actionDelete(params grammar.NodeDelete) error {
 }
 
 func (r *Runner) actionDownload(params grammar.NodeUpload) error {
-	if err := r.requireConnection(); err != nil {
-		return err
-	}
-
 	sourceFiles := params.SourceFiles
 	destinationDir := params.DestinationDir
 
-	fmt.Printf("[step %d]: DOWNLOAD %s to %s\n", r.step, color.YellowString(strings.Join(sourceFiles, ", ")), color.GreenString(destinationDir))
+	r.nextStep(
+		grammar.ActionDOWNLOAD,
+		fmt.Sprintf(
+			"%s to %s",
+			color.YellowString(strings.Join(sourceFiles, ", ")),
+			color.GreenString(destinationDir),
+		),
+	)
+
+	if err := r.requireConnection(); err != nil {
+		return err
+	}
 
 	sourceFiles = variable.CompileArray(sourceFiles, r.variable)
 	destinationDir = variable.Compile(destinationDir, r.variable)
@@ -328,14 +346,21 @@ func (r *Runner) actionDownload(params grammar.NodeUpload) error {
 }
 
 func (r *Runner) actionMove(params grammar.NodeCopy) error {
-	if err := r.requireConnection(); err != nil {
-		return err
-	}
-
 	sourceFilepath := params.Source
 	destinationFilepath := params.Destination
 
-	fmt.Printf("[step %d]: MOVE %s to %s\n", r.step, color.YellowString(sourceFilepath), color.GreenString(destinationFilepath))
+	r.nextStep(
+		grammar.ActionMOVE,
+		fmt.Sprintf(
+			"%s to %s",
+			color.YellowString(sourceFilepath),
+			color.GreenString(destinationFilepath),
+		),
+	)
+
+	if err := r.requireConnection(); err != nil {
+		return err
+	}
 
 	sourceFilepath = variable.Compile(sourceFilepath, r.variable)
 	destinationFilepath = variable.Compile(destinationFilepath, r.variable)
@@ -351,13 +376,13 @@ func (r *Runner) actionMove(params grammar.NodeCopy) error {
 }
 
 func (r *Runner) actionRun(params grammar.NodeRun) error {
+	command := params.Command
+
+	r.nextStep(grammar.ActionRUN, color.YellowString(command))
+
 	if err := r.requireConnection(); err != nil {
 		return err
 	}
-
-	command := params.Command
-
-	fmt.Printf("[step %d]: RUN %s\n", r.step, color.YellowString(command))
 
 	command = variable.Compile(command, r.variable)
 
@@ -372,14 +397,21 @@ func (r *Runner) actionRun(params grammar.NodeRun) error {
 }
 
 func (r *Runner) actionUpload(params grammar.NodeUpload) error {
-	if err := r.requireConnection(); err != nil {
-		return err
-	}
-
 	sourceFiles := params.SourceFiles
 	destinationDir := params.DestinationDir
 
-	fmt.Printf("[step %d]: UPLOAD %s to %s\n", r.step, color.YellowString(strings.Join(sourceFiles, ", ")), color.GreenString(destinationDir))
+	r.nextStep(
+		grammar.ActionUPLOAD,
+		fmt.Sprintf(
+			"%s to %s",
+			color.YellowString(strings.Join(sourceFiles, ", ")),
+			color.GreenString(destinationDir),
+		),
+	)
+
+	if err := r.requireConnection(); err != nil {
+		return err
+	}
 
 	sourceFiles = variable.CompileArray(sourceFiles, r.variable)
 	destinationDir = variable.Compile(destinationDir, r.variable)
@@ -397,13 +429,13 @@ func (r *Runner) actionUpload(params grammar.NodeUpload) error {
 }
 
 func (r *Runner) actionEnv(params grammar.NodeEnv) error {
-	fmt.Printf("[step %d]: ENV %s\n", r.step, color.GreenString(params.SourceCode))
+	r.nextStep(grammar.ActionENV, color.GreenString(params.SourceCode))
 	r.env[params.Key] = variable.Compile(params.Value, r.variable)
 	return nil
 }
 
 func (r *Runner) actionVar(params grammar.NodeVar) error {
-	fmt.Printf("[step %d]: VAR %s\n", r.step, color.GreenString(params.SourceCode))
+	r.nextStep(grammar.ActionVAR, color.GreenString(params.SourceCode))
 
 	if params.Literal != nil {
 		r.variable[params.Key] = params.Literal.Value
@@ -440,7 +472,7 @@ func (r *Runner) actionVar(params grammar.NodeVar) error {
 			}
 
 			if c.ProcessState.Success() == false {
-				return errors.New(fmt.Sprintf("run command '%s' fail.", params.Command.Command))
+				return fmt.Errorf("run command '%s' fail", params.Command.Command)
 			}
 
 			r.variable[params.Key] = strings.TrimSpace(stdoutBuf.String())
