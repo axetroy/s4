@@ -183,7 +183,7 @@ func (r *Runner) Run() error {
 			}
 			break
 		case grammar.ActionRUN:
-			if err := r.actionRun(action.Node.(grammar.NodeBash)); err != nil {
+			if err := r.actionRun(action.Node.(grammar.NodeRun)); err != nil {
 				return err
 			}
 			break
@@ -350,7 +350,7 @@ func (r *Runner) actionMove(params grammar.NodeCopy) error {
 	return nil
 }
 
-func (r *Runner) actionRun(params grammar.NodeBash) error {
+func (r *Runner) actionRun(params grammar.NodeRun) error {
 	if err := r.requireConnection(); err != nil {
 		return err
 	}

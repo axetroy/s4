@@ -70,7 +70,7 @@ type NodeCmd struct {
 	SourceCode string
 }
 
-type NodeBash struct {
+type NodeRun struct {
 	Command    string
 	SourceCode string
 }
@@ -124,7 +124,7 @@ var (
 )
 
 func isAllowLineBreakAction(actionName string) bool {
-	return actionName == "RUN" || actionName == "BASH"
+	return actionName == ActionRUN
 }
 
 func Tokenizer(input string) ([]Token, error) {
@@ -221,8 +221,8 @@ func Tokenizer(input string) ([]Token, error) {
 				// if found line wrap, eg. \n
 				if lineWrapReg.MatchString(char) {
 
-					// only allow RUN and BASH to use line break
-					if isAllowLineBreakAction(keyword) {
+					// only allow RUN to use line break
+					if keyword == ActionRUN {
 						// find space blank forward and skip it.
 						lastCharIndex := currentIndex - 1
 						lastChar := ""
@@ -397,7 +397,7 @@ func Tokenizer(input string) ([]Token, error) {
 				}
 				tokens = append(tokens, Token{
 					Key: keyword,
-					Node: NodeBash{
+					Node: NodeRun{
 						Command:    valueStr,
 						SourceCode: valueStr,
 					},

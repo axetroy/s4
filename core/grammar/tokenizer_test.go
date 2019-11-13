@@ -32,7 +32,7 @@ DELETE file1.txt file2.txt
 			want: []grammar.Token{
 				{
 					Key: "RUN",
-					Node: grammar.NodeBash{
+					Node: grammar.NodeRun{
 						Command:    "192.168.0.1",
 						SourceCode: "192.168.0.1",
 					},
@@ -78,7 +78,7 @@ DELETE file1.txt file2.txt
 			want: []grammar.Token{
 				{
 					Key: "RUN",
-					Node: grammar.NodeBash{
+					Node: grammar.NodeRun{
 						Command:    "192.168.0.1",
 						SourceCode: "192.168.0.1",
 					},
@@ -94,7 +94,7 @@ RUN     192.168.0.1`,
 			want: []grammar.Token{
 				{
 					Key: "RUN",
-					Node: grammar.NodeBash{
+					Node: grammar.NodeRun{
 						Command:    "192.168.0.1",
 						SourceCode: "192.168.0.1",
 					},
@@ -109,7 +109,7 @@ RUN     192.168.0.1`,
 			want: []grammar.Token{
 				{
 					Key: "RUN",
-					Node: grammar.NodeBash{
+					Node: grammar.NodeRun{
 						Command:    "192.168.0.1",
 						SourceCode: "192.168.0.1",
 					},
@@ -144,7 +144,7 @@ RUN ls -lh
 				},
 				{
 					Key: "RUN",
-					Node: grammar.NodeBash{
+					Node: grammar.NodeRun{
 						Command:    "ls -lh",
 						SourceCode: "ls -lh",
 					},
@@ -263,7 +263,7 @@ RUN yarn \
 			want: []grammar.Token{
 				{
 					Key: "RUN",
-					Node: grammar.NodeBash{
+					Node: grammar.NodeRun{
 						Command:    `yarn \ && npm run build \ && env`,
 						SourceCode: `yarn \ && npm run build \ && env`,
 					},
@@ -281,7 +281,7 @@ RUN yarn \
 			want: []grammar.Token{
 				{
 					Key: "RUN",
-					Node: grammar.NodeBash{
+					Node: grammar.NodeRun{
 						Command:    `yarn \&& env`,
 						SourceCode: `yarn \&& env`,
 					},
