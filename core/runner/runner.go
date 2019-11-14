@@ -54,6 +54,7 @@ func NewRunner(configFilepath string) (*Runner, error) {
 	}
 
 	return &Runner{
+		step:     1,
 		tokens:   tokens,
 		env:      map[string]string{},
 		variable: map[string]string{},
