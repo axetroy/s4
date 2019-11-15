@@ -1,3 +1,4 @@
+[![Build Status](https://github.com/axetroy/s4/workflows/test/badge.svg)](https://github.com/axetroy/s4/actions)
 [![Build Status](https://travis-ci.com/axetroy/s4.svg?branch=master)](https://travis-ci.com/axetroy/s4)
 [![Coverage Status](https://coveralls.io/repos/github/axetroy/s4/badge.svg?branch=master)](https://coveralls.io/github/axetroy/s4?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/axetroy/s4)](https://goreportcard.com/report/github.com/axetroy/s4)
@@ -245,7 +246,7 @@ s4 --help
 You can re-download the executable and overwrite the original file.
 
 or type the following command to upgrade to the latest version.
-
+VAR	
 ```bash
 > s4 upgrade
 ```

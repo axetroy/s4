@@ -30,16 +30,16 @@ type Runner struct {
 
 func NewRunner(configFilepath string) (*Runner, error) {
 	if f, err := os.Stat(configFilepath); err != nil {
-		msg := fmt.Sprintf("Config file `%s` not found", configFilepath)
+		msg := fmt.Sprintf("Config file `%s` not found. print 's4 --help' for help.", configFilepath)
 		return nil, errors.New(color.RedString(msg))
 	} else {
 		if f.IsDir() {
-			msg := fmt.Sprintf("Config file `%s` is not a file", configFilepath)
+			msg := fmt.Sprintf("Config file `%s` is not a file.", configFilepath)
 			return nil, errors.New(color.RedString(msg))
 		}
 	}
 
-	fmt.Printf("Load the s4 file `%s`\n", color.GreenString(configFilepath))
+	fmt.Printf("Load the s4 file `%s`.\n", color.GreenString(configFilepath))
 
 	content, err := ioutil.ReadFile(configFilepath)
 
