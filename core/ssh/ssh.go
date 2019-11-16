@@ -183,21 +183,18 @@ func (c *Client) Env(key string, options Options) (string, error) {
 	return strings.TrimSpace(stdoutBuf.String()), nil
 }
 
-func (c *Client) Run(command string, options Options) (stdout *bytes.Buffer, stderr *bytes.Buffer, err error) {
-	stdout = new(bytes.Buffer)
-	stderr = new(bytes.Buffer)
+func (c *Client) Run(command string, options Options) (stdout bytes.Buffer, stderr bytes.Buffer, err error) {
+	var session *ssh.Session
 
 	// Create a session. It is one session per command.
-	session, err := c.sshClient.NewSession()
-
-	if err != nil {
+	if session, err = c.sshClient.NewSession(); err != nil {
 		return
 	}
 
 	defer session.Close()
 
-	session.Stdout = Writer{output: os.Stdout, data: stdout}
-	session.Stderr = Writer{output: os.Stderr, data: stderr}
+	session.Stdout = Writer{output: os.Stdout, data: &stdout}
+	session.Stderr = Writer{output: os.Stderr, data: &stderr}
 
 	if options.CWD != "" {
 		command = "cd " + options.CWD + " && " + command
