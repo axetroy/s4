@@ -12,7 +12,7 @@ func main() {
 
 	app.Name = "s4"
 	app.Usage = "Integrate local and remote workflow"
-	app.Version = "0.7.0"
+	app.Version = "0.8.0"
 	app.Author = "Axetroy"
 	app.Email = "axetroy.dev@gmail.com"
 
