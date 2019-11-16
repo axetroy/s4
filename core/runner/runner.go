@@ -13,6 +13,7 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/axetroy/s4/core/grammar"
+	"github.com/axetroy/s4/core/host"
 	"github.com/axetroy/s4/core/ssh"
 	"github.com/axetroy/s4/core/variable"
 	"github.com/fatih/color"
@@ -191,25 +192,41 @@ func (r *Runner) actionConnect(params grammar.NodeConnect) error {
 		r.ssh = nil
 	}
 
-	password := ""
+	var password *string
+	var privateKey = new([]byte)
 
-	if params.Password != nil {
-		password = *params.Password
-		password = variable.Compile(password, r.variable)
+	if params.ConnectType != nil {
+		switch *params.ConnectType {
+		case host.ConnectTypePassword:
+			s := variable.Compile(*params.Password, r.variable)
+			password = &s
+			break
+		case host.ConnectTypePrivateKeyFile:
+			b, err := ioutil.ReadFile(*params.Password)
+
+			if err != nil {
+				return err
+			}
+
+			privateKey = &b
+			break
+		default:
+			return fmt.Errorf("invalid connection type `%s`", *params.ConnectType)
+		}
 	} else {
 		// ask password for remote server
 		prompt := &survey.Password{
 			Message: "Please type remote server's password",
 		}
 
-		if err := survey.AskOne(prompt, &password); err != nil {
+		if err := survey.AskOne(prompt, password); err != nil {
 			return err
 		}
 	}
 
 	r.ssh = ssh.NewSSH()
 
-	if err := r.ssh.Connect(params.Host, params.Port, params.Username, password); err != nil {
+	if err := r.ssh.Connect(params.Host, params.Port, params.Username, password, privateKey); err != nil {
 		r.ssh = nil
 		return err
 	}

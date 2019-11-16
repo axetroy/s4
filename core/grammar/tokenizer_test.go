@@ -2,6 +2,7 @@ package grammar_test
 
 import (
 	"github.com/axetroy/s4/core/grammar"
+	"github.com/axetroy/s4/core/host"
 	"reflect"
 	"testing"
 )
@@ -12,6 +13,7 @@ func TestTokenizer(t *testing.T) {
 	}
 
 	password := "123123"
+	privateKeyFile := "./path/to/private/key/file"
 
 	tests := []struct {
 		name    string
@@ -138,7 +140,6 @@ RUN ls -lh
 						Host:       "192.168.0.1",
 						Port:       "22",
 						Username:   "axetroy",
-						Password:   nil,
 						SourceCode: "axetroy@192.168.0.1:22",
 					},
 				},
@@ -178,17 +179,38 @@ RUN ls -lh
 		{
 			name: "connect with password",
 			args: args{
-				input: "CONNECT root@192.168.0.1:2222 123123",
+				input: "CONNECT root@192.168.0.1:2222 WITH PASSWORD 123123",
 			},
 			want: []grammar.Token{
 				{
 					Key: grammar.ActionCONNECT,
 					Node: grammar.NodeConnect{
-						Host:       "192.168.0.1",
-						Username:   "root",
-						Port:       "2222",
-						Password:   &password,
-						SourceCode: "root@192.168.0.1:2222 123123",
+						Host:        "192.168.0.1",
+						Username:    "root",
+						Port:        "2222",
+						ConnectType: &host.ConnectTypePassword,
+						Password:    &password,
+						SourceCode:  "root@192.168.0.1:2222 WITH PASSWORD 123123",
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "connect with private file",
+			args: args{
+				input: "CONNECT root@192.168.0.1:2222 WITH FILE ./path/to/private/key/file",
+			},
+			want: []grammar.Token{
+				{
+					Key: grammar.ActionCONNECT,
+					Node: grammar.NodeConnect{
+						Host:        "192.168.0.1",
+						Username:    "root",
+						Port:        "2222",
+						ConnectType: &host.ConnectTypePrivateKeyFile,
+						Password:    &privateKeyFile,
+						SourceCode:  "root@192.168.0.1:2222 WITH FILE ./path/to/private/key/file",
 					},
 				},
 			},

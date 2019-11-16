@@ -10,6 +10,9 @@ func TestParseAddress(t *testing.T) {
 	type args struct {
 		address string
 	}
+	password := "123123"
+	publicKeyFile := "./path/to/private/key/file"
+
 	tests := []struct {
 		name    string
 		args    args
@@ -47,6 +50,32 @@ func TestParseAddress(t *testing.T) {
 				address: "root@192.168.0.1:abc",
 			},
 			wantErr: true,
+		},
+		{
+			name: "with password",
+			args: args{
+				address: "root@192.168.0.1:22 WITH PASSWORD 123123",
+			},
+			want: host.Address{
+				Host:        "192.168.0.1",
+				Port:        "22",
+				Username:    "root",
+				ConnectType: &host.ConnectTypePassword,
+				Password:    &password,
+			},
+		},
+		{
+			name: "with public key file",
+			args: args{
+				address: "root@192.168.0.1:22 WITH FILE ./path/to/private/key/file",
+			},
+			want: host.Address{
+				Host:        "192.168.0.1",
+				Port:        "22",
+				Username:    "root",
+				ConnectType: &host.ConnectTypePrivateKeyFile,
+				Password:    &publicKeyFile,
+			},
 		},
 	}
 	for _, tt := range tests {

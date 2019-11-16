@@ -23,11 +23,12 @@ type NodeUpload struct {
 }
 
 type NodeConnect struct {
-	Host       string
-	Port       string
-	Username   string
-	Password   *string
-	SourceCode string
+	Host        string
+	Port        string
+	Username    string
+	ConnectType *string
+	Password    *string
+	SourceCode  string
 }
 
 type NodeEnv struct {
@@ -289,33 +290,18 @@ func Tokenizer(input string) ([]Token, error) {
 
 			switch keyword {
 			case ActionCONNECT:
-				var password *string
-
-				hostRaw := value[:1]
-
-				if valueLength != 1 && valueLength != 2 {
-					return tokens, errors.New(fmt.Sprintf("`CONNECT` should follow the format `<username>@<host>:<port> [password]`, but got `%s`", valueStr))
-				}
-
-				if valueLength == 2 {
-					pwd := strings.TrimSpace(value[1])
-
-					if pwd != "" {
-						password = &pwd
-					}
-				}
-
-				if addr, err := host.Parse(strings.Join(hostRaw, "")); err != nil {
+				if addr, err := host.Parse(valueStr); err != nil {
 					return tokens, err
 				} else {
 					tokens = append(tokens, Token{
 						Key: keyword,
 						Node: NodeConnect{
-							Host:       addr.Host,
-							Port:       addr.Port,
-							Username:   addr.Username,
-							Password:   password,
-							SourceCode: valueStr,
+							Host:        addr.Host,
+							Port:        addr.Port,
+							Username:    addr.Username,
+							ConnectType: addr.ConnectType,
+							Password:    addr.Password,
+							SourceCode:  valueStr,
 						},
 					})
 				}

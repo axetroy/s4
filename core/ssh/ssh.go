@@ -3,15 +3,17 @@ package ssh
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net"
 	"os"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/cheggaaa/pb/v3"
+	"github.com/fatih/color"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 )
@@ -106,16 +108,32 @@ func NewSSH() *Client {
 	}
 }
 
-func (c *Client) Connect(host, port, username, password string) error {
-	// connect to
+func (c *Client) Connect(host, port, username string, password *string, privateKey *[]byte) error {
+	var authMethods []ssh.AuthMethod
+
+	if password != nil {
+		authMethods = append(authMethods, ssh.Password(*password))
+		fmt.Println(color.GreenString("Connect server with password"))
+	} else if privateKey != nil {
+		pk, err := ssh.ParsePrivateKey(*privateKey)
+
+		if err != nil {
+			return err
+		}
+
+		authMethods = append(authMethods, ssh.PublicKeys(pk))
+
+		fmt.Println(color.GreenString("Connect server with private key"))
+	} else {
+		return errors.New("connect require password or private key")
+	}
+
 	sshConfig := &ssh.ClientConfig{
-		User: username,
-		Auth: []ssh.AuthMethod{
-			ssh.Password(password),
-		},
-		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
-			return nil
-		},
+		User:            username,
+		Auth:            authMethods,
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		BannerCallback:  ssh.BannerDisplayStderr(),
+		Timeout:         time.Second * 30,
 	}
 
 	addr := fmt.Sprintf("%s:%v", host, port)
