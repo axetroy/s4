@@ -129,10 +129,13 @@ func Upgrade() error {
 		return err
 	}
 
-	if cmdOutput, err := exec.Command(executablePath, "--help").CombinedOutput(); err != nil {
+	ps := exec.Command(executablePath, "--help")
+
+	ps.Stderr = os.Stderr
+	ps.Stdout = os.Stdout
+
+	if err := ps.Run(); err != nil {
 		return err
-	} else {
-		fmt.Println(string(cmdOutput))
 	}
 
 	return nil
