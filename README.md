@@ -45,29 +45,31 @@ for more detail about command. print `s4 --help`
 
 ### Documentation
 
-| Syntax   | Description                                        | Example                                                                  |
-| -------- | -------------------------------------------------- | ------------------------------------------------------------------------ |
-| CONNECT  | Connect to the server.                             | `CONNECT root@192.168.0.1:22`<br/>`CONNECT root@192.168.0.1:22 password` |
-| ENV      | Setting environment variables for remote server.   | `ENV PRIVATE_KEY = 123`                                                  |
-| VAR      | Defining variables.                                | `VAR PRIVATE_KEY = 123`<br/>`RUN echo {{PRIVATE_KEY}}`                   |
-| CD       | Change current working directory of remote server. | `CD /home/axetroy`                                                       |
-| UPLOAD   | Upload local files to remote server dir.           | `UPLOAD start.py ./server`                                               |
-| DOWNLOAD | Download remote files to local dir.                | `DOWNLOAD start.py ./server`                                             |
-| COPY     | Copy file at remote server.                        | `COPY data.db data.db.bak`                                               |
-| MOVE     | Move file at remote server.                        | `MOVE data.bak data.db`                                                  |
-| DELETE   | Delete files at remote server.                     | `DELETE file1 file2`                                                     |
-| RUN      | Run command at remote server.                      | `RUN python ./remote/start.py`                                           |
-| CMD      | Run command in local server.                       | `RUN ["npm", "run", "build"]`                                            |
+| Syntax   | Description                                        | Example                                                                                                                                                            |
+| -------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| CONNECT  | Connect to the server.                             | `CONNECT root@192.168.0.1:22`<br/>`CONNECT root@192.168.0.1:22 WITH PASSWORD your_password`<br/>`CONNECT root@192.168.0.1:22 WITH FILE ./path/to/private/key/file` |
+| ENV      | Setting environment variables for remote server.   | `ENV PRIVATE_KEY = 123`                                                                                                                                            |
+| VAR      | Defining variables.                                | `VAR PRIVATE_KEY = 123`<br/>`RUN echo {{PRIVATE_KEY}}`                                                                                                             |
+| CD       | Change current working directory of remote server. | `CD /home/axetroy`                                                                                                                                                 |
+| UPLOAD   | Upload local files to remote server dir.           | `UPLOAD start.py ./server`                                                                                                                                         |
+| DOWNLOAD | Download remote files to local dir.                | `DOWNLOAD start.py ./server`                                                                                                                                       |
+| COPY     | Copy file at remote server.                        | `COPY data.db data.db.bak`                                                                                                                                         |
+| MOVE     | Move file at remote server.                        | `MOVE data.bak data.db`                                                                                                                                            |
+| DELETE   | Delete files at remote server.                     | `DELETE file1 file2`                                                                                                                                               |
+| RUN      | Run command at remote server.                      | `RUN python ./remote/start.py`                                                                                                                                     |
+| CMD      | Run command in local server.                       | `RUN ["npm", "run", "build"]`                                                                                                                                      |
 
 <details><summary>CONNECT</summary>
 
-Connect to remote SSH server. Its format should be `<username>@<address>:<port> [password]`
+Connect to remote SSH server. Its format should be `<username>@<address>:<port> [WITH [PASSWORD|FILE] [VALUE]]`
 
 eg `CONNECT root@192.168.0.1:22`
 
-eg `CONNECT root@192.168.0.1:22 password`
+eg `CONNECT root@192.168.0.1:22 WITH PASSWORD you_password`
 
-If password not provide. it will ask you to enter in terminal.
+eg `CONNECT root@192.168.0.1:22 WITH FILE ./path/to/private/key/file`
+
+If password or private key file not provide. it will ask you to enter in terminal.
 
 </details>
 
@@ -246,7 +248,8 @@ s4 --help
 You can re-download the executable and overwrite the original file.
 
 or type the following command to upgrade to the latest version.
-VAR	
+VAR
+
 ```bash
 > s4 upgrade
 ```
