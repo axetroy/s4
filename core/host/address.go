@@ -34,7 +34,7 @@ func Parse(address string) (Address, error) {
 	matchers := addressReg.FindAllStringSubmatch(address, -1)
 
 	if len(matchers) == 0 {
-		return addr, errors.New(fmt.Sprintf("address format should follow `<username>@<host>:<port> [[%s]]` but got `%s`", strings.Join(ConnectTypes, "|"), address))
+		return addr, errors.New(fmt.Sprintf("address format should follow `<username>@<host>:<port> [WITH [%s] [VALUE]]` but got `%s`", strings.Join(ConnectTypes, "|"), address))
 	}
 
 	matcher := matchers[0]
