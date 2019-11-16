@@ -10,8 +10,10 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path"
 	"runtime"
+	"syscall"
 
 	"github.com/cheggaaa/pb/v3"
 	"github.com/fatih/color"
@@ -83,7 +85,7 @@ func Upgrade() error {
 
 	if response.TagName == currentVersion {
 		fmt.Printf("You are using the latest version `%s`\n", color.GreenString(response.TagName))
-		return nil
+		//return nil
 	}
 
 	fmt.Printf("Upgrading from `%s` to `%s` ...\n", color.GreenString(currentVersion), color.YellowString(response.TagName))
@@ -94,6 +96,18 @@ func Upgrade() error {
 	if err != nil {
 		return err
 	}
+
+	quit := make(chan os.Signal)
+	// kill (no param) default send syscall.SIGTERM
+	// kill -2 is syscall.SIGINT
+	// kill -9 is syscall.SIGKILL but can't be catch, so don't need add it
+	signal.Notify(quit, os.Kill, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGSTOP, syscall.SIGTSTP)
+
+	go func() {
+		<-quit
+		_ = os.RemoveAll(tempDir)
+		os.Exit(1)
+	}()
 
 	defer os.RemoveAll(tempDir)
 
