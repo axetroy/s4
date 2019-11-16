@@ -164,7 +164,7 @@ func (r *Runner) Run() error {
 			err = r.actionDownload(action.Node.(grammar.NodeUpload))
 			break
 		default:
-			err = errors.New(fmt.Sprintf("Invalid action `%s`", action.Key))
+			err = fmt.Errorf("invalid action `%s`", action.Key)
 		}
 
 		if err != nil {
@@ -387,7 +387,7 @@ func (r *Runner) actionRun(params grammar.NodeRun) error {
 
 	command = variable.Compile(command, r.variable)
 
-	if err := r.ssh.Run(command, ssh.Options{
+	if _, _, err := r.ssh.Run(command, ssh.Options{
 		CWD: r.cwdRemote,
 		Env: r.env,
 	}); err != nil {
@@ -482,7 +482,7 @@ func (r *Runner) actionVar(params grammar.NodeVar) error {
 				return err
 			}
 
-			b, err := r.ssh.RunAndCombineOutput(strings.Join(params.Command.Command, " "), ssh.Options{
+			stdout, _, err := r.ssh.Run(strings.Join(params.Command.Command, " "), ssh.Options{
 				CWD: r.cwdRemote,
 				Env: r.env,
 			})
@@ -491,7 +491,7 @@ func (r *Runner) actionVar(params grammar.NodeVar) error {
 				return err
 			}
 
-			output := string(b)
+			output := stdout.String()
 
 			r.variable[params.Key] = strings.TrimSpace(output)
 		}

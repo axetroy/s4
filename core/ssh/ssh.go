@@ -16,6 +16,21 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+type Writer struct {
+	output io.Writer
+	data   *bytes.Buffer
+}
+
+func (w Writer) Write(p []byte) (n int, err error) {
+	if w.data != nil {
+		if n, err := w.data.Write(p); err != nil {
+			return n, err
+		}
+	}
+
+	return w.output.Write(p)
+}
+
 type Client struct {
 	sshClient  *ssh.Client
 	sftpClient *sftp.Client
@@ -168,37 +183,21 @@ func (c *Client) Env(key string, options Options) (string, error) {
 	return strings.TrimSpace(stdoutBuf.String()), nil
 }
 
-func (c *Client) RunAndCombineOutput(command string, options Options) ([]byte, error) {
+func (c *Client) Run(command string, options Options) (stdout *bytes.Buffer, stderr *bytes.Buffer, err error) {
+	stdout = new(bytes.Buffer)
+	stderr = new(bytes.Buffer)
+
 	// Create a session. It is one session per command.
 	session, err := c.sshClient.NewSession()
 
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	defer session.Close()
 
-	if options.CWD != "" {
-		command = "cd " + options.CWD + " && " + command
-	}
-
-	command = setEnvForCommand(command, options.Env)
-
-	return session.CombinedOutput(command)
-}
-
-func (c *Client) RunWithCustomIO(command string, options Options, stdout *bytes.Buffer, stderr *bytes.Buffer) error {
-	// Create a session. It is one session per command.
-	session, err := c.sshClient.NewSession()
-
-	if err != nil {
-		return err
-	}
-
-	defer session.Close()
-
-	session.Stdout = stdout
-	session.Stderr = stderr
+	session.Stdout = Writer{output: os.Stdout, data: stdout}
+	session.Stderr = Writer{output: os.Stderr, data: stderr}
 
 	if options.CWD != "" {
 		command = "cd " + options.CWD + " && " + command
@@ -207,52 +206,10 @@ func (c *Client) RunWithCustomIO(command string, options Options, stdout *bytes.
 	command = setEnvForCommand(command, options.Env)
 
 	if err = session.Run(command); err != nil {
-		return err
+		return
 	}
 
-	return nil
-}
-
-func (c *Client) Run(command string, options Options) error {
-	// Create a session. It is one session per command.
-	session, err := c.sshClient.NewSession()
-
-	if err != nil {
-		return err
-	}
-
-	defer session.Close()
-
-	if options.CWD != "" {
-		command = "cd " + options.CWD + " && " + command
-	}
-
-	command = setEnvForCommand(command, options.Env)
-
-	sessionStdOut, err := session.StdoutPipe()
-
-	if err != nil {
-		return err
-	}
-
-	sessionStdErr, err := session.StderrPipe()
-
-	if err != nil {
-		return err
-	}
-
-	if err = session.Run(command); err != nil {
-		return err
-	}
-
-	if _, err := io.Copy(os.Stdout, sessionStdOut); err != nil {
-		return err
-	}
-	if _, err := io.Copy(os.Stderr, sessionStdErr); err != nil {
-		return err
-	}
-
-	return nil
+	return
 }
 
 func (c *Client) downloadFile(remoteFilePath string, localDir string) error {
