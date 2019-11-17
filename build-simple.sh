@@ -6,7 +6,6 @@ os_archs=(
     darwin/amd64
     linux/amd64
     windows/amd64
-    darwin/arm
 )
 
 releases=()
