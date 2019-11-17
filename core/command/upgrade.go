@@ -85,7 +85,7 @@ func Upgrade() error {
 
 	if response.TagName == currentVersion {
 		fmt.Printf("You are using the latest version `%s`\n", color.GreenString(response.TagName))
-		//return nil
+		return nil
 	}
 
 	fmt.Printf("Upgrading from `%s` to `%s` ...\n", color.GreenString(currentVersion), color.YellowString(response.TagName))
@@ -113,7 +113,7 @@ func Upgrade() error {
 
 	fileName := path.Join(tempDir, response.TagName+"_"+currentAsset.Name)
 
-	if err := DownloadFile(fileName, currentAsset.BrowserDownloadUrl); err != nil {
+	if err := downloadFile(fileName, currentAsset.BrowserDownloadUrl); err != nil {
 		return err
 	}
 
@@ -183,7 +183,7 @@ func decompress(tarFile, dest string) error {
 	return nil
 }
 
-func DownloadFile(filepath string, url string) error {
+func downloadFile(filepath string, url string) error {
 	tmpl := fmt.Sprintf(`{{string . "prefix"}}{{ green "%s" }} {{counters . }} {{ bar . "[" "=" ">" "-" "]"}} {{percent . }} {{speed . }}{{string . "suffix"}}`, filepath)
 
 	// Get the data

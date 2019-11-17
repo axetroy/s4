@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/axetroy/s4/core/command"
-	"github.com/urfave/cli"
 	"log"
 	"os"
+
+	"github.com/axetroy/s4/core/command"
+	"github.com/urfave/cli"
 )
 
 func main() {
