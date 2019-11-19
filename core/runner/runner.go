@@ -20,13 +20,14 @@ import (
 )
 
 type Runner struct {
-	ssh       *ssh.Client       // current ssh client
-	step      int               // current step
-	cwdLocal  string            // current working dir at local
-	tokens    []grammar.Token   // token from parsing
-	cwdRemote string            // current remote working dir
-	env       map[string]string // env for remote
-	variable  map[string]string // var
+	ssh         *ssh.Client       // current ssh client
+	totalStep   int               // total step
+	currentStep int               // current step
+	cwdLocal    string            // current working dir at local
+	tokens      []grammar.Token   // token from parsing
+	cwdRemote   string            // current remote working dir
+	env         map[string]string // env for remote
+	variable    map[string]string // var
 }
 
 func NewRunner(configFilepath string) (*Runner, error) {
@@ -55,10 +56,11 @@ func NewRunner(configFilepath string) (*Runner, error) {
 	}
 
 	return &Runner{
-		step:     1,
-		tokens:   tokens,
-		env:      map[string]string{},
-		variable: map[string]string{},
+		currentStep: 1,
+		totalStep:   len(tokens),
+		tokens:      tokens,
+		env:         map[string]string{},
+		variable:    map[string]string{},
 	}, nil
 }
 
@@ -107,8 +109,8 @@ func (r *Runner) resolveRemotePaths(remotePaths []string) []string {
 }
 
 func (r *Runner) nextStep(action string, msg string) {
-	fmt.Printf("[step %v]: %s %s\n", r.step, strings.ToUpper(action), msg)
-	r.step++
+	fmt.Printf("Step %d/%d: %s %s\n", r.currentStep, r.totalStep, strings.ToUpper(action), msg)
+	r.currentStep++
 }
 
 func printTimeDiff(d1 time.Time, d2 time.Time) {
@@ -173,8 +175,6 @@ func (r *Runner) Run() error {
 			return err
 		}
 	}
-
-	r.nextStep("END", color.GreenString("done!"))
 
 	printTimeDiff(d1, time.Now())
 
@@ -278,7 +278,7 @@ func (r *Runner) actionCmd(params grammar.NodeCmd) error {
 	}
 
 	if c.ProcessState.Success() == false {
-		return errors.New(fmt.Sprintf("run command '%s' fail.", params.SourceCode))
+		return fmt.Errorf("run command '%s' fail", params.SourceCode)
 	}
 
 	return nil
