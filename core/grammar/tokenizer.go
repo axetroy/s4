@@ -2,7 +2,6 @@ package grammar
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -195,7 +194,7 @@ func Tokenizer(input string) ([]Token, error) {
 
 			// valid keyword
 			if validKeywordReg.MatchString(keyword) == false {
-				return tokens, errors.New(fmt.Sprintf("invalid keyword `%s`", keyword))
+				return tokens, fmt.Errorf("invalid keyword `%s`", keyword)
 			}
 
 		skipEmptyString:
@@ -274,7 +273,7 @@ func Tokenizer(input string) ([]Token, error) {
 
 			// value must set
 			if len(value) == 0 {
-				return tokens, errors.New(fmt.Sprintf("`%s` require value.", keyword))
+				return tokens, fmt.Errorf("`%s` require value", keyword)
 			}
 
 			// validate token here
@@ -308,7 +307,7 @@ func Tokenizer(input string) ([]Token, error) {
 				break
 			case ActionENV:
 				if regexp.MustCompile("\\w+\\s?=\\s?\\w+").MatchString(valueStr) == false {
-					return tokens, errors.New(fmt.Sprintf("`ENV` need to match `KEY = VALUE` format but got `%s`", valueStr))
+					return tokens, fmt.Errorf("`ENV` need to match `KEY = VALUE` format but got `%s`", valueStr)
 				}
 
 				tokens = append(tokens, Token{
@@ -323,7 +322,7 @@ func Tokenizer(input string) ([]Token, error) {
 				break
 			case ActionCD:
 				if valueLength != 1 {
-					return tokens, errors.New(fmt.Sprintf("`CD` only accepts one string but got `%s`", valueStr))
+					return tokens, fmt.Errorf("`CD` only accepts one string but got `%s`", valueStr)
 				}
 				tokens = append(tokens, Token{
 					Key: keyword,
@@ -337,7 +336,7 @@ func Tokenizer(input string) ([]Token, error) {
 				fallthrough
 			case ActionDOWNLOAD:
 				if valueLength < 2 {
-					return tokens, errors.New(fmt.Sprintf("`%s` only accepts one string but got `%s`", keyword, valueStr))
+					return tokens, fmt.Errorf("`%s` only accepts one string but got `%s`", keyword, valueStr)
 				}
 
 				tokens = append(tokens, Token{
@@ -354,7 +353,7 @@ func Tokenizer(input string) ([]Token, error) {
 				fallthrough
 			case ActionMOVE:
 				if valueLength != 2 {
-					return tokens, errors.New(fmt.Sprintf("`%s` only accepts two string but got `%s`", keyword, valueStr))
+					return tokens, fmt.Errorf("`%s` only accepts two string but got `%s`", keyword, valueStr)
 				}
 				tokens = append(tokens, Token{
 					Key: keyword,
@@ -367,7 +366,7 @@ func Tokenizer(input string) ([]Token, error) {
 				break
 			case ActionDELETE:
 				if valueLength < 1 {
-					return tokens, errors.New(fmt.Sprintf("`%s` accepts at least one parameter but got `%s`", keyword, valueStr))
+					return tokens, fmt.Errorf("`%s` accepts at least one parameter but got `%s`", keyword, valueStr)
 				}
 				tokens = append(tokens, Token{
 					Key: keyword,
@@ -379,7 +378,7 @@ func Tokenizer(input string) ([]Token, error) {
 				break
 			case ActionRUN:
 				if valueLength < 1 {
-					return tokens, errors.New(fmt.Sprintf("`%s` accepts at least one parameter but got `%s`", keyword, valueStr))
+					return tokens, fmt.Errorf("`%s` accepts at least one parameter but got `%s`", keyword, valueStr)
 				}
 				tokens = append(tokens, Token{
 					Key: keyword,
@@ -394,7 +393,7 @@ func Tokenizer(input string) ([]Token, error) {
 				var commands []string
 
 				if err := json.Unmarshal([]byte(valueStr), &commands); err != nil {
-					return tokens, errors.New(fmt.Sprintf("`%s` require JSON array format but got `%s`\n", keyword, valueStr))
+					return tokens, fmt.Errorf("`%s` require JSON array format but got `%s`\n", keyword, valueStr)
 				}
 
 				value = commands
@@ -450,7 +449,7 @@ func Tokenizer(input string) ([]Token, error) {
 			continue
 		}
 
-		return tokens, errors.New(fmt.Sprintf("Invalid token `%s`", char))
+		return tokens, fmt.Errorf("invalid token `%s`", char)
 	}
 
 	return tokens, nil
