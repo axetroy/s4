@@ -45,6 +45,7 @@ func writeFileStr(filepath string, data string) error {
 	return ioutil.WriteFile(filepath, []byte(data), os.ModePerm)
 }
 
+// Init a s4 file
 func Init() error {
 	var (
 		cwd string
@@ -60,12 +61,13 @@ func Init() error {
 	if pathExists(filepath) {
 		fmt.Printf("s4 file `%s` already exist.\n", filepath)
 		return nil
-	} else {
-		if err = writeFileStr(filepath, defaultTemplate); err != nil {
-			return err
-		}
-		fmt.Println("s4 file have been create.")
 	}
+
+	if err = writeFileStr(filepath, defaultTemplate); err != nil {
+		return err
+	}
+
+	fmt.Println("s4 file have been create.")
 
 	return nil
 }

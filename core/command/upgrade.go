@@ -19,6 +19,7 @@ import (
 	"github.com/fatih/color"
 )
 
+// Upgrade current s4 version
 func Upgrade() error {
 
 	res, err := http.Get("https://api.github.com/repos/axetroy/s4/releases/latest")
@@ -37,7 +38,7 @@ func Upgrade() error {
 
 	type Asset struct {
 		Name               string `json:"name"`
-		BrowserDownloadUrl string `json:"browser_download_url"`
+		BrowserDownloadURL string `json:"browser_download_url"`
 	}
 
 	type Response struct {
@@ -113,7 +114,7 @@ func Upgrade() error {
 
 	fileName := path.Join(tempDir, response.TagName+"_"+currentAsset.Name)
 
-	if err := downloadFile(fileName, currentAsset.BrowserDownloadUrl); err != nil {
+	if err := downloadFile(fileName, currentAsset.BrowserDownloadURL); err != nil {
 		return err
 	}
 

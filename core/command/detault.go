@@ -2,6 +2,7 @@ package command
 
 import "github.com/axetroy/s4/core/runner"
 
+// Default task
 func Default(configFile string) error {
 	r, err := runner.NewRunner(configFile)
 
