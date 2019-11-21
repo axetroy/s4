@@ -31,7 +31,7 @@ github.com/pkg/sftp
 github.com/russross/blackfriday/v2
 # github.com/shurcooL/sanitized_anchor_name v1.0.0
 github.com/shurcooL/sanitized_anchor_name
-# github.com/urfave/cli v1.22.1
+# github.com/urfave/cli v1.22.2
 github.com/urfave/cli
 # golang.org/x/crypto v0.0.0-20191119213627-4f8c1d86b1ba
 golang.org/x/crypto/chacha20
