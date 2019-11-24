@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/axetroy/s4/core/command"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 func main() {
@@ -14,8 +14,12 @@ func main() {
 	app.Name = "s4"
 	app.Usage = "Integrate local and remote workflow"
 	app.Version = "0.8.1"
-	app.Author = "Axetroy"
-	app.Email = "axetroy.dev@gmail.com"
+	app.Authors = []*cli.Author{
+		{
+			Name:  "Axetroy",
+			Email: "axetroy.dev@gmail.com",
+		},
+	}
 
 	cli.AppHelpTemplate = `NAME:
    {{.Name}} - {{.Usage}}
@@ -41,14 +45,14 @@ SOURCE CODE:
 `
 
 	app.Flags = []cli.Flag{
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:  "config, c",
 			Usage: "specify the s4 configuration file.",
 			Value: ".s4", // default value
 		},
 	}
 
-	app.Commands = []cli.Command{
+	app.Commands = []*cli.Command{
 		{
 			Name:  "version",
 			Usage: "Print current s4 version to stdout",
