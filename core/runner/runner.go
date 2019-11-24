@@ -265,6 +265,8 @@ func (r *Runner) actionCd(params grammar.NodeCd) error {
 func (r *Runner) actionCmd(params grammar.NodeCmd) error {
 	r.nextStep(grammar.ActionCMD, color.YellowString(fmt.Sprintf("%v", params.SourceCode)))
 
+	fmt.Println("WARNING: `CMD` have been deprecated. it will be remove at next major version. use `RUN` instead.")
+
 	command := variable.Compile(params.Command, r.variable)
 	args := variable.CompileArray(params.Arguments, r.variable)
 
@@ -394,21 +396,44 @@ func (r *Runner) actionMove(params grammar.NodeCopy) error {
 }
 
 func (r *Runner) actionRun(params grammar.NodeRun) error {
-	command := params.Command
+	r.nextStep(grammar.ActionRUN, color.YellowString(params.SourceCode))
 
-	r.nextStep(grammar.ActionRUN, color.YellowString(command))
+	isPipeCommand := len(params.Commands) > 1
+	var lastCommandStdout bytes.Buffer
 
-	if err := r.requireConnection(); err != nil {
-		return err
-	}
+	for _, cmd := range params.Commands {
+		if cmd.RunInLocal {
+			command := variable.Compile(cmd.Command[0], r.variable)
+			args := variable.CompileArray(cmd.Command[1:], r.variable)
 
-	command = variable.Compile(command, r.variable)
+			c := exec.Command(command, args...)
 
-	if _, _, err := r.ssh.Run(command, ssh.Options{
-		CWD: r.cwdRemote,
-		Env: r.env,
-	}); err != nil {
-		return err
+			c.Stdin = bytes.NewReader(lastCommandStdout.Bytes())
+			c.Stdout = os.Stdout
+			c.Stderr = os.Stderr
+
+			if err := c.Run(); err != nil {
+				return err
+			}
+
+			if c.ProcessState.Success() == false {
+				return fmt.Errorf("run command '%v' fail", params.SourceCode)
+			}
+		} else {
+			if err := r.requireConnection(); err != nil {
+				return err
+			}
+
+			command := variable.Compile(cmd.SourceCode, r.variable)
+
+			if stdout, _, err := r.ssh.Run(command, ssh.Options{CWD: r.cwdRemote, Env: r.env}); err != nil {
+				return err
+			} else {
+				if isPipeCommand {
+					lastCommandStdout = stdout
+				}
+			}
+		}
 	}
 
 	return nil

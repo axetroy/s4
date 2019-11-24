@@ -71,7 +71,13 @@ type NodeCmd struct {
 }
 
 type NodeRun struct {
-	Command    string
+	Commands   []NodeRunCommand
+	SourceCode string
+}
+
+type NodeRunCommand struct {
+	Command    []string
+	RunInLocal bool
 	SourceCode string
 }
 
@@ -118,7 +124,7 @@ var (
 	validKeywordReg   = regexp.MustCompile(strings.Join(Actions, "|"))
 	keywordRed        = regexp.MustCompile("[A-Z]")
 	emptyStrReg       = regexp.MustCompile("\\s")
-	lineWrapReg       = regexp.MustCompile("\\\n")
+	lineWrapReg       = regexp.MustCompile("\\\r?\\\n")
 	lineBreakChar     = "\\"
 	spaceBlank        = " "
 )
@@ -240,6 +246,7 @@ func Tokenizer(input string) ([]Token, error) {
 
 						if lastChar == lineBreakChar {
 							currentIndex++
+							currentValue = strings.TrimRight(currentValue, "\\")
 							continue
 						}
 					}
@@ -380,10 +387,29 @@ func Tokenizer(input string) ([]Token, error) {
 				if valueLength < 1 {
 					return tokens, fmt.Errorf("`%s` accepts at least one parameter but got `%s`", keyword, valueStr)
 				}
+
+				commands := make([]NodeRunCommand, 0)
+
+				cmd := strings.TrimSpace(valueStr)
+
+				command := NodeRunCommand{SourceCode: cmd}
+
+				if strings.HasPrefix(cmd, "[") && strings.HasSuffix(cmd, "]") {
+					command.RunInLocal = true
+					if err := json.Unmarshal([]byte(cmd), &command.Command); err != nil {
+						return tokens, fmt.Errorf("invalid local command '%s'", cmd)
+					}
+				} else {
+					command.RunInLocal = false
+					command.Command = trimArrayString(strings.Split(cmd, "&&"))
+				}
+
+				commands = append(commands, command)
+
 				tokens = append(tokens, Token{
 					Key: keyword,
 					Node: NodeRun{
-						Command:    valueStr,
+						Commands:   commands,
 						SourceCode: valueStr,
 					},
 				})
@@ -453,4 +479,14 @@ func Tokenizer(input string) ([]Token, error) {
 	}
 
 	return tokens, nil
+}
+
+func trimArrayString(arr []string) []string {
+	var r = make([]string, 0)
+
+	for _, val := range arr {
+		r = append(r, strings.TrimSpace(val))
+	}
+
+	return r
 }

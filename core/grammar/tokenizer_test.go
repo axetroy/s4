@@ -1,10 +1,13 @@
 package grammar_test
 
 import (
-	"github.com/axetroy/s4/core/grammar"
-	"github.com/axetroy/s4/core/host"
+	"encoding/json"
+	"fmt"
 	"reflect"
 	"testing"
+
+	"github.com/axetroy/s4/core/grammar"
+	"github.com/axetroy/s4/core/host"
 )
 
 func TestTokenizer(t *testing.T) {
@@ -29,13 +32,19 @@ CMD ["ls", "-lh", "./"]
 MOVE data.db data.db.bak
 COPY data.db data.db.bak
 DELETE file1.txt file2.txt
-`,
+		`,
 			},
 			want: []grammar.Token{
 				{
 					Key: "RUN",
 					Node: grammar.NodeRun{
-						Command:    "192.168.0.1",
+						Commands: []grammar.NodeRunCommand{
+							{
+								Command:    []string{"192.168.0.1"},
+								RunInLocal: false,
+								SourceCode: "192.168.0.1",
+							},
+						},
 						SourceCode: "192.168.0.1",
 					},
 				},
@@ -81,7 +90,13 @@ DELETE file1.txt file2.txt
 				{
 					Key: "RUN",
 					Node: grammar.NodeRun{
-						Command:    "192.168.0.1",
+						Commands: []grammar.NodeRunCommand{
+							{
+								Command:    []string{"192.168.0.1"},
+								RunInLocal: false,
+								SourceCode: "192.168.0.1",
+							},
+						},
 						SourceCode: "192.168.0.1",
 					},
 				},
@@ -97,7 +112,13 @@ RUN     192.168.0.1`,
 				{
 					Key: "RUN",
 					Node: grammar.NodeRun{
-						Command:    "192.168.0.1",
+						Commands: []grammar.NodeRunCommand{
+							{
+								Command:    []string{"192.168.0.1"},
+								RunInLocal: false,
+								SourceCode: "192.168.0.1",
+							},
+						},
 						SourceCode: "192.168.0.1",
 					},
 				},
@@ -112,7 +133,13 @@ RUN     192.168.0.1`,
 				{
 					Key: "RUN",
 					Node: grammar.NodeRun{
-						Command:    "192.168.0.1",
+						Commands: []grammar.NodeRunCommand{
+							{
+								Command:    []string{"192.168.0.1"},
+								RunInLocal: false,
+								SourceCode: "192.168.0.1",
+							},
+						},
 						SourceCode: "192.168.0.1",
 					},
 				},
@@ -131,7 +158,7 @@ RUN     192.168.0.1`,
 				input: `CONNECT axetroy@192.168.0.1:22
 RUN ls -lh
 
-`,
+		`,
 			},
 			want: []grammar.Token{
 				{
@@ -146,7 +173,13 @@ RUN ls -lh
 				{
 					Key: "RUN",
 					Node: grammar.NodeRun{
-						Command:    "ls -lh",
+						Commands: []grammar.NodeRunCommand{
+							{
+								Command:    []string{"ls -lh"},
+								RunInLocal: false,
+								SourceCode: "ls -lh",
+							},
+						},
 						SourceCode: "ls -lh",
 					},
 				},
@@ -280,14 +313,20 @@ RUN ls -lh
 RUN yarn \
 	&& npm run build \
 	&& env
-`,
+		`,
 			},
 			want: []grammar.Token{
 				{
 					Key: "RUN",
 					Node: grammar.NodeRun{
-						Command:    `yarn \ && npm run build \ && env`,
-						SourceCode: `yarn \ && npm run build \ && env`,
+						Commands: []grammar.NodeRunCommand{
+							{
+								Command:    []string{"yarn", "npm run build", "env"},
+								RunInLocal: false,
+								SourceCode: "yarn  && npm run build  && env",
+							},
+						},
+						SourceCode: `yarn  && npm run build  && env`,
 					},
 				},
 			},
@@ -304,8 +343,14 @@ RUN yarn \
 				{
 					Key: "RUN",
 					Node: grammar.NodeRun{
-						Command:    `yarn \&& env`,
-						SourceCode: `yarn \&& env`,
+						Commands: []grammar.NodeRunCommand{
+							{
+								Command:    []string{`yarn`, `env`},
+								RunInLocal: false,
+								SourceCode: `yarn && env`,
+							},
+						},
+						SourceCode: `yarn && env`,
 					},
 				},
 			},
@@ -315,8 +360,8 @@ RUN yarn \
 			name: "parse var literal",
 			args: args{
 				input: `
-VAR name = axetroy
-`,
+		VAR name = axetroy
+		`,
 			},
 			want: []grammar.Token{
 				{
@@ -334,9 +379,9 @@ VAR name = axetroy
 			name: "parse var env",
 			args: args{
 				input: `
-VAR remote_home = $HOME:remote
-VAR local_home = $HOME:local
-`,
+		VAR remote_home = $HOME:remote
+		VAR local_home = $HOME:local
+		`,
 			},
 			want: []grammar.Token{
 				{
@@ -368,9 +413,9 @@ VAR local_home = $HOME:local
 			name: "parse var command",
 			args: args{
 				input: `
-VAR local_home <= ["echo", "$HOME"]
-VAR remote_home <= echo $HOME
-`,
+		VAR local_home <= ["echo", "$HOME"]
+		VAR remote_home <= echo $HOME
+		`,
 			},
 			want: []grammar.Token{
 				{
@@ -398,15 +443,43 @@ VAR remote_home <= echo $HOME
 			},
 			wantErr: false,
 		},
+		{
+			name: "run local command with RUN",
+			args: args{
+				input: `
+		RUN ["npm", "run", "build"]
+		`,
+			},
+			want: []grammar.Token{
+				{
+					Key: "RUN",
+					Node: grammar.NodeRun{
+						Commands: []grammar.NodeRunCommand{
+							{
+								Command:    []string{"npm", "run", "build"},
+								RunInLocal: true,
+								SourceCode: `["npm", "run", "build"]`,
+							},
+						},
+						SourceCode: `["npm", "run", "build"]`,
+					},
+				},
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := grammar.Tokenizer(tt.args.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Tokenizer() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Tokenizer() error = %+v, wantErr %+v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
+				d1, _ := json.Marshal(got)
+				d2, _ := json.Marshal(tt.want)
+				fmt.Println(string(d1))
+				fmt.Println(string(d2))
 				t.Errorf("Tokenizer() = \nresult: %+v\nexpect: %+v", got, tt.want)
 			}
 		})

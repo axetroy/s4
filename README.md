@@ -56,8 +56,7 @@ for more detail about command. print `s4 --help`
 | COPY     | Copy file at remote server.                        | `COPY data.db data.db.bak`                                                                                                                                         |
 | MOVE     | Move file at remote server.                        | `MOVE data.bak data.db`                                                                                                                                            |
 | DELETE   | Delete files at remote server.                     | `DELETE file1 file2`                                                                                                                                               |
-| RUN      | Run command at remote server.                      | `RUN python ./remote/start.py`                                                                                                                                     |
-| CMD      | Run command in local server.                       | `RUN ["npm", "run", "build"]`                                                                                                                                      |
+| RUN      | Run command at local machine or remote server.     | `RUN npm run build`<br/>`RUN ["npm", "run", "build"]`                                                                                                              |
 
 <details><summary>CONNECT</summary>
 
@@ -108,8 +107,7 @@ VAR GOPATH_LOCAL = $GOPATH:local
 
 VAR GOPATH_REMOTE = $GOPATH:remote
 
-CMD ["echo", "'local GOPATH {{GOPATH_LOCAL}}'"]
-RUN echo "remote GOPATH: {{GOPATH_REMOTE}}"
+RUN echo "remote GOPATH: {{GOPATH_REMOTE}}, local GOPATH: {{GOPATH_LOCAL}}"
 ```
 
 ### Set stdout from execute the command line
@@ -125,8 +123,7 @@ VAR NODE_VERSION_LOCAL <= ["node", "-v"]
 
 VAR NODE_VERSION_REMOTE <= node -v
 
-CMD ["echo", "'local version : {{NODE_VERSION_LOCAL}}'"]
-RUN echo "remote version: {{NODE_VERSION_REMOTE}}"
+RUN echo "remote version: {{NODE_VERSION_REMOTE}}, local version: {{NODE_VERSION_LOCAL}}"
 ```
 
 ```s4
@@ -199,28 +196,28 @@ eg `DELETE file1 file2`
 
 <details><summary>RUN</summary>
 
-Run command at remote server
+Run command at local or remote server
+
+#### Run at remote server
 
 eg `RUN python ./remote/start.py`
 
 It supports multi-line wrap
 
 ```s4
+# run at remote
 RUN npm version \
     && npm run build \
     && npm run test \
     && npm run publish
 ```
 
-</details>
+### Run at local machine
 
-<details><summary>CMD</summary>
-
-Run command in local
-
-eg `RUN ["npm", "run", "build"]`
-
-It supports multi-line wrap
+```s4
+# run at local machine
+RUN ["npm", "run", "build"]
+```
 
 </details>
 
