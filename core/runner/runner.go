@@ -265,7 +265,7 @@ func (r *Runner) actionCd(params grammar.NodeCd) error {
 func (r *Runner) actionCmd(params grammar.NodeCmd) error {
 	r.nextStep(grammar.ActionCMD, color.YellowString(fmt.Sprintf("%v", params.SourceCode)))
 
-	fmt.Println("WARNING: `CMD` have been deprecated. it will be remove at next major version. use `RUN` instead.")
+	_, _ = os.Stderr.Write([]byte(fmt.Sprint("WARNING: `CMD` have been deprecated. it will be remove at next major version. use `RUN` instead.")))
 
 	command := variable.Compile(params.Command, r.variable)
 	args := variable.CompileArray(params.Arguments, r.variable)
