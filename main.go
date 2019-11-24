@@ -46,9 +46,10 @@ SOURCE CODE:
 
 	app.Flags = []cli.Flag{
 		&cli.StringFlag{
-			Name:  "config, c",
-			Usage: "specify the s4 configuration file.",
-			Value: ".s4", // default value
+			Name:    "config",
+			Aliases: []string{"c"},
+			Usage:   "specify the s4 configuration file.",
+			Value:   ".s4", // default value
 		},
 	}
 
