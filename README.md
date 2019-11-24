@@ -46,18 +46,18 @@ for more detail about command. print `s4 --help`
 
 ### Documentation
 
-| Syntax   | Description                                        | Example                                                                                                                                                            |
-| -------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| CONNECT  | Connect to the server.                             | `CONNECT root@192.168.0.1:22`<br/>`CONNECT root@192.168.0.1:22 WITH PASSWORD your_password`<br/>`CONNECT root@192.168.0.1:22 WITH FILE ./path/to/private/key/file` |
-| ENV      | Setting environment variables for remote server.   | `ENV PRIVATE_KEY = 123`                                                                                                                                            |
-| VAR      | Defining variables.                                | `VAR PRIVATE_KEY = 123`<br/>`RUN echo {{PRIVATE_KEY}}`                                                                                                             |
-| CD       | Change current working directory of remote server. | `CD /home/axetroy`                                                                                                                                                 |
-| UPLOAD   | Upload local files to remote server dir.           | `UPLOAD start.py ./server`                                                                                                                                         |
-| DOWNLOAD | Download remote files to local dir.                | `DOWNLOAD start.py ./server`                                                                                                                                       |
-| COPY     | Copy file at remote server.                        | `COPY data.db data.db.bak`                                                                                                                                         |
-| MOVE     | Move file at remote server.                        | `MOVE data.bak data.db`                                                                                                                                            |
-| DELETE   | Delete files at remote server.                     | `DELETE file1 file2`                                                                                                                                               |
-| RUN      | Run command at local machine or remote server.     | `RUN npm run build`<br/>`RUN ["npm", "run", "build"]`                                                                                                              |
+| Syntax   | Description                                        | Example                                                                           |
+| -------- | -------------------------------------------------- | --------------------------------------------------------------------------------- |
+| CONNECT  | Connect to the server.                             | `CONNECT root@192.168.0.1:22`<br/>`CONNECT root@192.168.0.1:22 WITH PASSWORD 123` |
+| ENV      | Setting environment variables for remote server.   | `ENV PRIVATE_KEY = 123`                                                           |
+| VAR      | Defining variables.                                | `VAR PRIVATE_KEY = 123`<br/>`RUN echo {{PRIVATE_KEY}}`                            |
+| CD       | Change current working directory of remote server. | `CD /home/axetroy`                                                                |
+| UPLOAD   | Upload local files to remote server dir.           | `UPLOAD local_file.txt ./remote_dir`                                              |
+| DOWNLOAD | Download remote files to local dir.                | `DOWNLOAD remote_file.txt ./local_dir`                                            |
+| COPY     | Copy file at remote server.                        | `COPY remote.db remote.db.bak`                                                    |
+| MOVE     | Move file at remote server.                        | `MOVE remote.bak remote.db`                                                       |
+| DELETE   | Delete files at remote server.                     | `DELETE remote_file_1.txt remote_file_2.txt`                                      |
+| RUN      | Run command at local machine or remote server.     | `RUN echo "run at remote"`<br/>`RUN ["echo", "\"run at local\""]`                 |
 
 <details><summary>CONNECT</summary>
 
