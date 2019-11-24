@@ -11,7 +11,8 @@ require (
 	github.com/mattn/go-isatty v0.0.10 // indirect
 	github.com/mattn/go-runewidth v0.0.6 // indirect
 	github.com/pkg/sftp v1.10.1
-	github.com/urfave/cli v1.22.1
-	golang.org/x/crypto v0.0.0-20191119213627-4f8c1d86b1ba
+	github.com/urfave/cli v1.22.2
+	github.com/urfave/cli/v2 v2.0.0 // indirect
+	golang.org/x/crypto v0.0.0-20191122220453-ac88ee75c92c
 	golang.org/x/sys v0.0.0-20191110163157-d32e6e3b99c4 // indirect
 )
