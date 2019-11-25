@@ -192,7 +192,7 @@ func (r *Runner) actionConnect(params grammar.NodeConnect) error {
 		r.ssh = nil
 	}
 
-	var password *string
+	var password = new(string)
 	var privateKey = new([]byte)
 
 	if params.ConnectType != nil {
