@@ -200,14 +200,17 @@ func (r *Runner) actionConnect(params grammar.NodeConnect) error {
 		case host.ConnectTypePassword:
 			s := variable.Compile(*params.Password, r.variable)
 			password = &s
+			privateKey = nil
 			break
 		case host.ConnectTypePrivateKeyFile:
-			b, err := ioutil.ReadFile(*params.Password)
+			privateKeyFilePath := variable.Compile(*params.Password, r.variable)
+			b, err := ioutil.ReadFile(privateKeyFilePath)
 
 			if err != nil {
 				return err
 			}
 
+			password = nil
 			privateKey = &b
 			break
 		default:
@@ -222,6 +225,8 @@ func (r *Runner) actionConnect(params grammar.NodeConnect) error {
 		if err := survey.AskOne(prompt, password); err != nil {
 			return err
 		}
+
+		privateKey = nil
 	}
 
 	r.ssh = ssh.NewSSH()
