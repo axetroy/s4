@@ -145,9 +145,6 @@ func (r *Runner) Run() error {
 		case grammar.ActionCD:
 			err = r.actionCd(action.Node.(grammar.NodeCd))
 			break
-		case grammar.ActionCMD:
-			err = r.actionCmd(action.Node.(grammar.NodeCmd))
-			break
 		case grammar.ActionRUN:
 			err = r.actionRun(action.Node.(grammar.NodeRun))
 			break
@@ -263,30 +260,6 @@ func (r *Runner) actionCd(params grammar.NodeCd) error {
 	cwd := variable.Compile(dir, r.variable)
 
 	r.cwdRemote = r.resolveRemotePath(cwd)
-
-	return nil
-}
-
-func (r *Runner) actionCmd(params grammar.NodeCmd) error {
-	r.nextStep(grammar.ActionCMD, color.YellowString(fmt.Sprintf("%v", params.SourceCode)))
-
-	_, _ = os.Stderr.Write([]byte(fmt.Sprint("WARNING: `CMD` have been deprecated. it will be remove at next major version. use `RUN` instead.")))
-
-	command := variable.Compile(params.Command, r.variable)
-	args := variable.CompileArray(params.Arguments, r.variable)
-
-	c := exec.Command(command, args...)
-
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
-
-	if err := c.Run(); err != nil {
-		return err
-	}
-
-	if c.ProcessState.Success() == false {
-		return fmt.Errorf("run command '%s' fail", params.SourceCode)
-	}
 
 	return nil
 }

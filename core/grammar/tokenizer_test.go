@@ -28,7 +28,6 @@ func TestTokenizer(t *testing.T) {
 			name: "basic",
 			args: args{
 				input: `RUN 192.168.0.1
-CMD ["ls", "-lh", "./"]
 MOVE data.db data.db.bak
 COPY data.db data.db.bak
 DELETE file1.txt file2.txt
@@ -46,14 +45,6 @@ DELETE file1.txt file2.txt
 							},
 						},
 						SourceCode: "192.168.0.1",
-					},
-				},
-				{
-					Key: "CMD",
-					Node: grammar.NodeCmd{
-						Command:    "ls",
-						Arguments:  []string{"-lh", "./"},
-						SourceCode: `["ls", "-lh", "./"]`,
 					},
 				},
 				{

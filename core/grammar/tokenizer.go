@@ -64,12 +64,6 @@ type NodeCopy struct {
 	SourceCode  string
 }
 
-type NodeCmd struct {
-	Command    string
-	Arguments  []string
-	SourceCode string
-}
-
 type NodeRun struct {
 	Commands   []NodeRunCommand
 	SourceCode string
@@ -102,7 +96,6 @@ const (
 	ActionMOVE     = "MOVE"
 	ActionDELETE   = "DELETE"
 	ActionRUN      = "RUN"
-	ActionCMD      = "CMD"
 )
 
 var (
@@ -118,7 +111,6 @@ var (
 		ActionDELETE,
 		ActionRUN,
 		ActionRUN,
-		ActionCMD,
 	}
 	commentIdentifier = "#"
 	validKeywordReg   = regexp.MustCompile(strings.Join(Actions, "|"))
@@ -410,25 +402,6 @@ func Tokenizer(input string) ([]Token, error) {
 					Key: keyword,
 					Node: NodeRun{
 						Commands:   commands,
-						SourceCode: valueStr,
-					},
-				})
-
-				break
-			case ActionCMD:
-				var commands []string
-
-				if err := json.Unmarshal([]byte(valueStr), &commands); err != nil {
-					return tokens, fmt.Errorf("`%s` require JSON array format but got `%s`\n", keyword, valueStr)
-				}
-
-				value = commands
-
-				tokens = append(tokens, Token{
-					Key: keyword,
-					Node: NodeCmd{
-						Command:    commands[0],
-						Arguments:  commands[1:],
 						SourceCode: valueStr,
 					},
 				})
