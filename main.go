@@ -13,7 +13,7 @@ func main() {
 
 	app.Name = "s4"
 	app.Usage = "Integrate local and remote workflow"
-	app.Version = "0.9.0"
+	app.Version = "0.10.0"
 	app.Authors = []*cli.Author{
 		{
 			Name:  "Axetroy",
