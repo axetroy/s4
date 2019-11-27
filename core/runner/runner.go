@@ -30,20 +30,20 @@ type Runner struct {
 	variable    map[string]string // var
 }
 
-func NewRunner(configFilepath string) (*Runner, error) {
-	if f, err := os.Stat(configFilepath); err != nil {
-		msg := fmt.Sprintf("Config file `%s` not found. print 's4 --help' for help.", configFilepath)
+func NewRunner(configFilePath string) (*Runner, error) {
+	if f, err := os.Stat(configFilePath); err != nil {
+		msg := fmt.Sprintf("Config file `%s` not found. print 's4 --help' for help.", configFilePath)
 		return nil, errors.New(color.RedString(msg))
 	} else {
 		if f.IsDir() {
-			msg := fmt.Sprintf("Config file `%s` is not a file.", configFilepath)
+			msg := fmt.Sprintf("Config file `%s` is not a file.", configFilePath)
 			return nil, errors.New(color.RedString(msg))
 		}
 	}
 
-	fmt.Printf("Load the s4 file `%s`.\n", color.GreenString(configFilepath))
+	fmt.Printf("Load the s4 file `%s`.\n", color.GreenString(configFilePath))
 
-	content, err := ioutil.ReadFile(configFilepath)
+	content, err := ioutil.ReadFile(configFilePath)
 
 	if err != nil {
 		return nil, err
