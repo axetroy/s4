@@ -10,5 +10,5 @@ require (
 	github.com/mattn/go-colorable v0.1.4 // indirect
 	github.com/pkg/sftp v1.10.1
 	github.com/urfave/cli/v2 v2.0.0
-	golang.org/x/crypto v0.0.0-20191122220453-ac88ee75c92c
+	golang.org/x/crypto v0.0.0-20191128160524-b544559bb6d1
 )
