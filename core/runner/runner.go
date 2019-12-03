@@ -257,9 +257,9 @@ func (r *Runner) actionCd(params grammar.NodeCd) error {
 
 	r.nextStep(grammar.ActionCD, color.GreenString(dir))
 
-	cwd := variable.Compile(dir, r.variable)
+	targetPath := variable.Compile(dir, r.variable)
 
-	r.cwdRemote = r.resolveRemotePath(cwd)
+	r.cwdRemote = r.resolveRemotePath(targetPath)
 
 	return nil
 }
