@@ -34,8 +34,7 @@ jobs:
 
       # after success
       - name: Coverage
-        if: startsWith(matrix.os, 'ubuntu')
+        if: job.status == 'success' && startsWith(matrix.os, 'ubuntu') && github.repository == 'axetroy/s4'
         run: |
-          go get golang.org/x/tools/cmd/cover
           GO111MODULE=off go get github.com/mattn/goveralls
-          $(go env GOPATH)/bin/goveralls -coverprofile=coverage.out -service=github-action -repotoken ${{ secrets.COVERALLS_TOKEN }}
+          $(go env GOPATH)/bin/goveralls -coverprofile=profile.cov -service=github -repotoken ${{ secrets.COVERALLS_TOKEN }}

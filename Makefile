@@ -1,5 +1,5 @@
 test:
-	go test --cover -covermode=count -coverprofile=coverage.out ./...
+	go test --cover -covermode=atomic -coverprofile=coverage.out ./...
 
 build:
 	bash build.sh
