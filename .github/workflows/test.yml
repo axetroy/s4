@@ -37,5 +37,5 @@ jobs:
         if: startsWith(matrix.os, 'ubuntu')
         run: |
           go get golang.org/x/tools/cmd/cover
-          go get github.com/mattn/goveralls
-          /home/runner/go/bin/goveralls -coverprofile=coverage.out -service=github-action -repotoken ${{ secrets.COVERALLS_TOKEN }}
+          GO111MODULE=off go get github.com/mattn/goveralls
+          $(go env GOPATH)/bin/goveralls -coverprofile=coverage.out -service=github-action -repotoken ${{ secrets.COVERALLS_TOKEN }}
