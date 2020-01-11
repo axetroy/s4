@@ -25,7 +25,7 @@ github.com/mattn/go-runewidth
 github.com/mgutz/ansi
 # github.com/pkg/errors v0.8.1
 github.com/pkg/errors
-# github.com/pkg/sftp v1.10.1
+# github.com/pkg/sftp v1.11.0
 github.com/pkg/sftp
 # github.com/russross/blackfriday/v2 v2.0.1
 github.com/russross/blackfriday/v2
