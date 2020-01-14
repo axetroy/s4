@@ -2,9 +2,15 @@
 
 # Reference:
 # https://github.com/golang/go/blob/master/src/go/build/syslist.go
-os_archs=$(go tool dist list)
-
-os_archs=(${os_archs//$'\n'/ })
+os_archs=(
+    darwin/amd64
+    linux/amd64
+    linux/arm64
+    windows/amd64
+    openbsd/amd64
+    openbsd/arm64
+    freebsd/amd64
+)
 
 releases=()
 fails=()

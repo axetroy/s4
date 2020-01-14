@@ -38,3 +38,19 @@ jobs:
         run: |
           GO111MODULE=off go get github.com/mattn/goveralls
           $(go env GOPATH)/bin/goveralls -coverprofile=coverage.out -service=github-action -repotoken ${{ secrets.COVERALLS_TOKEN }}
+          
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: job.status == 'success' && startsWith(matrix.os, 'ubuntu') && startsWith(github.ref, 'refs/tags/') && github.repository == 'axetroy/s4'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        with:
+          files: |
+            bin/s4_darwin_amd64.tar.gz
+            bin/s4_linux_amd64.tar.gz
+            bin/s4_linux_arm64.tar.gz
+            bin/s4_freebsd_amd64.tar.gz
+            bin/s4_openbsd_amd64.tar.gz
+            bin/s4_openbsd_arm64.tar.gz
+            bin/s4_windows_amd64.tar.gz
+          draft: true
