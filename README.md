@@ -280,6 +280,10 @@ So, I wrote this tool to release my hands.
 
 I hope this helps you.
 
+### Tools
+
+[vscode-s4](https://github.com/axetroy/vscode-s4)
+
 ### License
 
 The [MIT License](https://github.com/axetroy/s4/blob/master/LICENSE)
