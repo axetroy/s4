@@ -1,3 +1,9 @@
+English | [中文简体](README_cm.md)
+
+<div align="center">
+
+## Travel back and forth between local and remote workflow
+
 [![Build Status](https://github.com/axetroy/s4/workflows/test/badge.svg)](https://github.com/axetroy/s4/actions)
 [![Coverage Status](https://coveralls.io/repos/github/axetroy/s4/badge.svg?branch=master)](https://coveralls.io/github/axetroy/s4?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/axetroy/s4)](https://goreportcard.com/report/github.com/axetroy/s4)
@@ -5,9 +11,9 @@
 ![License](https://img.shields.io/github/license/axetroy/s4.svg)
 ![Repo Size](https://img.shields.io/github/repo-size/axetroy/s4.svg)
 
-## s4
+![Screenshot](screenshot.png)
 
-Integrate local and remote workflow.
+</div>
 
 Features:
 
@@ -16,8 +22,6 @@ Features:
 - [x] Upload local files to remote
 - [x] Download remote files to local
 - [x] Execute commands on the remote server
-
-![Screenshot](screenshot.png)
 
 ### Usage
 
