@@ -105,7 +105,7 @@ RUN echo {{PRIVATE_KEY}}
 
 它的格式是这样 `VAR {key} = ${envKey}:{tag}`
 
-`tag` 可以是 `local`/`remote`. 用于指定获取 本地/远程 的变量变量
+`tag` 可以是 `local`/`remote`. 用于指定获取 本地/远程 的环境变量
 
 ```s4
 CONNECT root@192.168.0.1:22
