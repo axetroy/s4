@@ -45,18 +45,19 @@ for more detail about the command. print `s4 --help`
 
 ### Documentation
 
-| Syntax   | Description                                        | Example                                                                           |
-| -------- | -------------------------------------------------- | --------------------------------------------------------------------------------- |
-| CONNECT  | Connect to the server.                             | `CONNECT root@192.168.0.1:22`<br/>`CONNECT root@192.168.0.1:22 WITH PASSWORD 123` |
-| ENV      | Setting environment variables for remote server.   | `ENV PRIVATE_KEY = 123`                                                           |
-| VAR      | Defining variables.                                | `VAR PRIVATE_KEY = 123`<br/>`RUN echo {{PRIVATE_KEY}}`                            |
-| CD       | Change current working directory of remote server. | `CD /home/axetroy`                                                                |
-| UPLOAD   | Upload local files to remote server dir.           | `UPLOAD local_file.txt ./remote_dir`                                              |
-| DOWNLOAD | Download remote files to local dir.                | `DOWNLOAD remote_file.txt ./local_dir`                                            |
-| COPY     | Copy file at remote server.                        | `COPY remote.db remote.db.bak`                                                    |
-| MOVE     | Move file at remote server.                        | `MOVE remote.bak remote.db`                                                       |
-| DELETE   | Delete files at remote server.                     | `DELETE remote_file_1.txt remote_file_2.txt`                                      |
-| RUN      | Run command at local machine or remote server.     | `RUN echo "run at remote"`<br/>`RUN ["echo", "\"run at local\""]`                 |
+| Syntax   | Description                                                              | Example                                                                           |
+| -------- | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------- |
+| CONNECT  | Connect to the server.                                                   | `CONNECT root@192.168.0.1:22`<br/>`CONNECT root@192.168.0.1:22 WITH PASSWORD 123` |
+| ENV      | Setting environment variables for remote server.                         | `ENV PRIVATE_KEY = 123`                                                           |
+| VAR      | Defining variables.                                                      | `VAR PRIVATE_KEY = 123`<br/>`RUN echo {{PRIVATE_KEY}}`                            |
+| CD       | Change current working directory of remote server.                       | `CD /home/axetroy`                                                                |
+| UPLOAD   | Upload local files to remote server dir.                                 | `UPLOAD local_file.txt ./remote_dir`                                              |
+| DOWNLOAD | Download remote files to local dir.                                      | `DOWNLOAD remote_file.txt ./local_dir`                                            |
+| COPY     | Copy file at remote server.                                              | `COPY remote.db remote.db.bak`                                                    |
+| MOVE     | Move file at remote server.                                              | `MOVE remote.bak remote.db`                                                       |
+| DELETE   | Delete files at remote server.                                           | `DELETE remote_file_1.txt remote_file_2.txt`                                      |
+| RUN      | Run command at local machine or remote server.                           | `RUN echo "run at remote"`<br/>`RUN ["echo", "\"run at local\""]`                 |
+| TRY      | Same as RUN, but will proceed to the next step regardless of the results | `TRY exit 1`<br/>`RUN ls -lh`                                                     |
 
 <details><summary>CONNECT</summary>
 
@@ -218,6 +219,12 @@ RUN npm version \
 # run at local machine
 RUN ["npm", "run", "build"]
 ```
+
+</details>
+
+<details><summary>TRY</summary>
+
+Same as RUN, but will proceed to the next step regardless of the results
 
 </details>
 

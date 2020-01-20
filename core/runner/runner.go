@@ -145,6 +145,8 @@ func (r *Runner) Run() error {
 		case grammar.ActionCD:
 			err = r.actionCd(action.Node.(grammar.NodeCd))
 			break
+		case grammar.ActionTRY:
+			fallthrough
 		case grammar.ActionRUN:
 			err = r.actionRun(action.Node.(grammar.NodeRun))
 			break
@@ -374,7 +376,13 @@ func (r *Runner) actionMove(params grammar.NodeCopy) error {
 }
 
 func (r *Runner) actionRun(params grammar.NodeRun) error {
-	r.nextStep(grammar.ActionRUN, color.YellowString(params.SourceCode))
+	stepName := grammar.ActionRUN
+
+	if !params.ExitWithCommand {
+		stepName = grammar.ActionTRY
+	}
+
+	r.nextStep(stepName, color.YellowString(params.SourceCode))
 
 	isPipeCommand := len(params.Commands) > 1
 	var lastCommandStdout bytes.Buffer
@@ -395,7 +403,11 @@ func (r *Runner) actionRun(params grammar.NodeRun) error {
 			}
 
 			if c.ProcessState.Success() == false {
-				return fmt.Errorf("run command '%v' fail", params.SourceCode)
+				if params.ExitWithCommand {
+					return fmt.Errorf("run command '%v' fail", params.SourceCode)
+				} else {
+					fmt.Printf("`TRY` run command '%v' fail. move on to the next step\n", params.SourceCode)
+				}
 			}
 		} else {
 			if err := r.requireConnection(); err != nil {
@@ -405,7 +417,12 @@ func (r *Runner) actionRun(params grammar.NodeRun) error {
 			command := variable.Compile(cmd.SourceCode, r.variable)
 
 			if stdout, _, err := r.ssh.Run(command, ssh.Options{CWD: r.cwdRemote, Env: r.env}); err != nil {
-				return err
+				if params.ExitWithCommand {
+					return err
+				} else {
+					fmt.Println(err.Error())
+					fmt.Printf("`TRY` run command '%v' fail. move on to the next step\n", params.SourceCode)
+				}
 			} else {
 				if isPipeCommand {
 					lastCommandStdout = stdout

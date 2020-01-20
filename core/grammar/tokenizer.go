@@ -65,8 +65,9 @@ type NodeCopy struct {
 }
 
 type NodeRun struct {
-	Commands   []NodeRunCommand
-	SourceCode string
+	Commands        []NodeRunCommand
+	SourceCode      string
+	ExitWithCommand bool // if command run fail. Whether to exit the process
 }
 
 type NodeRunCommand struct {
@@ -96,6 +97,7 @@ const (
 	ActionMOVE     = "MOVE"
 	ActionDELETE   = "DELETE"
 	ActionRUN      = "RUN"
+	ActionTRY      = "TRY"
 )
 
 var (
@@ -110,7 +112,7 @@ var (
 		ActionMOVE,
 		ActionDELETE,
 		ActionRUN,
-		ActionRUN,
+		ActionTRY,
 	}
 	commentIdentifier = "#"
 	validKeywordReg   = regexp.MustCompile(strings.Join(Actions, "|"))
@@ -122,7 +124,7 @@ var (
 )
 
 func isAllowLineBreakAction(actionName string) bool {
-	return actionName == ActionRUN
+	return actionName == ActionRUN || actionName == ActionTRY
 }
 
 func Tokenizer(input string) ([]Token, error) {
@@ -220,7 +222,7 @@ func Tokenizer(input string) ([]Token, error) {
 				if lineWrapReg.MatchString(char) {
 
 					// only allow RUN to use line break
-					if keyword == ActionRUN {
+					if isAllowLineBreakAction(keyword) {
 						// find space blank forward and skip it.
 						lastCharIndex := currentIndex - 1
 						lastChar := ""
@@ -375,6 +377,8 @@ func Tokenizer(input string) ([]Token, error) {
 					},
 				})
 				break
+			case ActionTRY:
+				fallthrough
 			case ActionRUN:
 				if valueLength < 1 {
 					return tokens, fmt.Errorf("`%s` accepts at least one parameter but got `%s`", keyword, valueStr)
@@ -401,8 +405,9 @@ func Tokenizer(input string) ([]Token, error) {
 				tokens = append(tokens, Token{
 					Key: keyword,
 					Node: NodeRun{
-						Commands:   commands,
-						SourceCode: valueStr,
+						Commands:        commands,
+						SourceCode:      valueStr,
+						ExitWithCommand: keyword == ActionRUN,
 					},
 				})
 

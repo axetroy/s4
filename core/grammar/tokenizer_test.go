@@ -27,10 +27,11 @@ func TestTokenizer(t *testing.T) {
 		{
 			name: "basic",
 			args: args{
-				input: `RUN 192.168.0.1
+				input: `RUN ls -lh
 MOVE data.db data.db.bak
 COPY data.db data.db.bak
 DELETE file1.txt file2.txt
+TRY ls -lh
 		`,
 			},
 			want: []grammar.Token{
@@ -39,12 +40,13 @@ DELETE file1.txt file2.txt
 					Node: grammar.NodeRun{
 						Commands: []grammar.NodeRunCommand{
 							{
-								Command:    []string{"192.168.0.1"},
+								Command:    []string{"ls -lh"},
 								RunInLocal: false,
-								SourceCode: "192.168.0.1",
+								SourceCode: "ls -lh",
 							},
 						},
-						SourceCode: "192.168.0.1",
+						SourceCode:      "ls -lh",
+						ExitWithCommand: true,
 					},
 				},
 				{
@@ -70,6 +72,20 @@ DELETE file1.txt file2.txt
 						SourceCode: "file1.txt file2.txt",
 					},
 				},
+				{
+					Key: "TRY",
+					Node: grammar.NodeRun{
+						Commands: []grammar.NodeRunCommand{
+							{
+								Command:    []string{"ls -lh"},
+								RunInLocal: false,
+								SourceCode: "ls -lh",
+							},
+						},
+						SourceCode:      "ls -lh",
+						ExitWithCommand: false,
+					},
+				},
 			},
 		},
 		{
@@ -88,7 +104,8 @@ DELETE file1.txt file2.txt
 								SourceCode: "192.168.0.1",
 							},
 						},
-						SourceCode: "192.168.0.1",
+						SourceCode:      "192.168.0.1",
+						ExitWithCommand: true,
 					},
 				},
 			},
@@ -110,7 +127,8 @@ RUN     192.168.0.1`,
 								SourceCode: "192.168.0.1",
 							},
 						},
-						SourceCode: "192.168.0.1",
+						SourceCode:      "192.168.0.1",
+						ExitWithCommand: true,
 					},
 				},
 			},
@@ -131,7 +149,8 @@ RUN     192.168.0.1`,
 								SourceCode: "192.168.0.1",
 							},
 						},
-						SourceCode: "192.168.0.1",
+						SourceCode:      "192.168.0.1",
+						ExitWithCommand: true,
 					},
 				},
 			},
@@ -171,7 +190,8 @@ RUN ls -lh
 								SourceCode: "ls -lh",
 							},
 						},
-						SourceCode: "ls -lh",
+						SourceCode:      "ls -lh",
+						ExitWithCommand: true,
 					},
 				},
 			},
@@ -317,7 +337,8 @@ RUN yarn \
 								SourceCode: "yarn  && npm run build  && env",
 							},
 						},
-						SourceCode: `yarn  && npm run build  && env`,
+						SourceCode:      `yarn  && npm run build  && env`,
+						ExitWithCommand: true,
 					},
 				},
 			},
@@ -341,7 +362,8 @@ RUN yarn \
 								SourceCode: `yarn && env`,
 							},
 						},
-						SourceCode: `yarn && env`,
+						SourceCode:      `yarn && env`,
+						ExitWithCommand: true,
 					},
 				},
 			},
@@ -452,7 +474,8 @@ RUN yarn \
 								SourceCode: `["npm", "run", "build"]`,
 							},
 						},
-						SourceCode: `["npm", "run", "build"]`,
+						SourceCode:      `["npm", "run", "build"]`,
+						ExitWithCommand: true,
 					},
 				},
 			},
