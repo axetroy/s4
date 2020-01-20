@@ -11,7 +11,7 @@ Integrate local and remote workflow.
 
 Features:
 
-- [x] Cross platform support
+- [x] Cross-platform support
 - [x] Declarative workflow
 - [x] Upload local files to remote
 - [x] Download remote files to local
@@ -41,7 +41,7 @@ drwxr-xr-x  6 root root 4.0K Sep 23  2018 test3
 drwxr-xr-x  4 root root 4.0K Aug 27 16:25 test4
 ```
 
-for more detail about command. print `s4 --help`
+for more detail about the command. print `s4 --help`
 
 ### Documentation
 
@@ -68,7 +68,7 @@ eg `CONNECT root@192.168.0.1:22 WITH PASSWORD you_password`
 
 eg `CONNECT root@192.168.0.1:22 WITH FILE ./path/to/private/key/file`
 
-If password or private key file not provide. it will ask you to enter in terminal.
+If the password or private key file not provide. it will ask you to enter in terminal.
 
 </details>
 
@@ -110,11 +110,11 @@ VAR GOPATH_REMOTE = $GOPATH:remote
 RUN echo "remote GOPATH: {{GOPATH_REMOTE}}, local GOPATH: {{GOPATH_LOCAL}}"
 ```
 
-### Set stdout from execute the command line
+### Set stdout from executing the command line
 
 Its format is this `VAR {key} <= {bashCommand}`.
 
-This will execute command at remote and set stdout to variable.
+This will execute command at remote and set stdout to a variable.
 
 or use the format `VAR {key} <= ["{command}", "{argument1}", "{argument2}"]`. It will run in local.
 
@@ -136,7 +136,7 @@ RUN echo {{PRIVATE_KEY}}
 
 <details><summary>CD</summary>
 
-Change current working directory of remote server
+Change the current working directory of the remote server
 
 eg `CD /home/axetroy`
 
@@ -148,13 +148,13 @@ This will affect all operations on the remote server, including upload/download/
 
 <details><summary>UPLOAD</summary>
 
-Upload local files to remote server
+Upload local files to a remote server
 
 eg `UPLOAD start.py ./server`
 
 It required at least two parameters. The last parameter is the remote server's directory where should be uploaded.
 
-The rest of the parameters are local files path.
+The rest of the parameters are the local files path.
 
 </details>
 
@@ -172,7 +172,7 @@ The rest of the parameters are remote files path.
 
 <details><summary>COPY</summary>
 
-Copy file at remote server
+Copy file at the remote server
 
 eg `COPY data.db data.db.bak`
 
@@ -180,7 +180,7 @@ eg `COPY data.db data.db.bak`
 
 <details><summary>MOVE</summary>
 
-Move file at remote server
+Move file at the remote server
 
 eg `MOVE data.db data.db.bak`
 
@@ -188,7 +188,7 @@ eg `MOVE data.db data.db.bak`
 
 <details><summary>DELETE</summary>
 
-Delete files at remote server, for security, Linux dangerous directories will be ignored
+Delete files at the remote server, for security, Linux dangerous directories will be ignored
 
 eg `DELETE file1 file2`
 
@@ -196,9 +196,9 @@ eg `DELETE file1 file2`
 
 <details><summary>RUN</summary>
 
-Run command at local or remote server
+Run the command at the local or remote server
 
-#### Run at remote server
+#### Run at the remote server
 
 eg `RUN python ./remote/start.py`
 
@@ -212,7 +212,7 @@ RUN npm version \
     && npm run publish
 ```
 
-### Run at local machine
+### Run at the local machine
 
 ```s4
 # run at local machine
@@ -272,7 +272,7 @@ make test
 
 In development, we need to operate remote servers locally, such as deploying services, restarting services, upload files, etc.
 
-We can of course do this with a bash script.
+of course, We can do this with a bash script.
 
 But that is quite cumbersome.
 
