@@ -17,6 +17,8 @@ Features:
 - [x] Download remote files to local
 - [x] Execute commands on the remote server
 
+![Screenshot](screenshot.png)
+
 ### Usage
 
 step 1: create a file name `.s4`
