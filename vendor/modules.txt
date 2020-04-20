@@ -33,7 +33,7 @@ github.com/russross/blackfriday/v2
 github.com/shurcooL/sanitized_anchor_name
 # github.com/urfave/cli/v2 v2.2.0
 github.com/urfave/cli/v2
-# golang.org/x/crypto v0.0.0-20200420104511-884d27f42877
+# golang.org/x/crypto v0.0.0-20200420201142-3c4aac89819a
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/chacha20
 golang.org/x/crypto/curve25519
