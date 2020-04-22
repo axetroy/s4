@@ -9,5 +9,5 @@ require (
 	github.com/fatih/color v1.9.0
 	github.com/pkg/sftp v1.11.0
 	github.com/urfave/cli/v2 v2.2.0
-	golang.org/x/crypto v0.0.0-20200420201142-3c4aac89819a
+	golang.org/x/crypto v0.0.0-20200422194213-44a606286825
 )
