@@ -39,7 +39,7 @@ jobs:
           GO111MODULE=off go get github.com/mattn/goveralls
           $(go env GOPATH)/bin/goveralls -coverprofile=coverage.out -service=github-action -repotoken ${{ secrets.COVERALLS_TOKEN }}
 
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v2
         if: runner.os == 'linux'
         with:
           name: bin
