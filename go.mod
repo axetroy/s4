@@ -3,7 +3,7 @@ module github.com/axetroy/s4
 go 1.13
 
 require (
-	github.com/AlecAivazis/survey/v2 v2.2.15
+	github.com/AlecAivazis/survey/v2 v2.2.16
 	github.com/cheggaaa/pb/v3 v3.0.8
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/fatih/color v1.12.0
