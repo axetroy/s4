@@ -50,7 +50,7 @@ github.com/shurcooL/sanitized_anchor_name
 # github.com/urfave/cli/v2 v2.3.0
 ## explicit; go 1.11
 github.com/urfave/cli/v2
-# golang.org/x/crypto v0.0.0-20210915214749-c084706c2272
+# golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
 ## explicit; go 1.17
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/chacha20
